@@ -1,55 +1,55 @@
-import type { Metadata } from "next";
-import localFont from "next/font/local";
+import type { Metadata, Viewport } from "next";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { SITE_URL } from "@/lib/site";
+import { EMAIL, GITHUB, LINKEDIN, SITE_URL } from "@/lib/site";
 
-/* Self-hosted via npm; next/font/local adds preload + size-adjusted
-   fallbacks so the display headline never jolts on first paint. */
-const sora = localFont({
-  src: "../node_modules/@fontsource-variable/sora/files/sora-latin-wght-normal.woff2",
-  variable: "--font-sora",
-  display: "swap",
-});
-const manrope = localFont({
-  src: "../node_modules/@fontsource-variable/manrope/files/manrope-latin-wght-normal.woff2",
-  variable: "--font-manrope",
-  display: "swap",
-});
+const description =
+  "Systems architect and engineering lead in Riyadh. I design and build production platforms: multi-tenant SaaS, real-time healthcare systems, and AI for industrial operations.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "Manea Abdullah — Systems Architect & Full-Stack Engineering Lead",
-  description:
-    "Systems architect in Riyadh building production platforms end to end — multi-tenant SaaS, real-time telehealth, and AI-native industrial systems.",
+  title: {
+    default: "Manea Abdullah · Systems Architect & Engineering Lead",
+    template: "%s · Manea Abdullah",
+  },
+  description,
+  alternates: { canonical: "/" },
   openGraph: {
-    title: "Manea Abdullah — Systems Architect",
-    description:
-      "Production platforms end to end: multi-tenant SaaS, real-time systems, AI-native architecture.",
+    title: "Manea Abdullah · Systems Architect & Engineering Lead",
+    description,
     type: "website",
     url: SITE_URL,
+    siteName: "Manea Abdullah",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Manea Abdullah — Systems Architect",
-    description:
-      "Production platforms end to end: multi-tenant SaaS, real-time systems, AI-native architecture.",
+    title: "Manea Abdullah · Systems Architect & Engineering Lead",
+    description,
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fafaf9" },
+    { media: "(prefers-color-scheme: dark)", color: "#0c0c0d" },
+  ],
 };
 
 const personJsonLd = {
   "@context": "https://schema.org",
   "@type": "Person",
   name: "Manea Abdullah Al-Awbathani",
-  jobTitle: "Systems Architect & Head of Software and AI",
-  email: "mailto:sir.manea.a@gmail.com",
+  jobTitle: "Head of Software & AI",
+  email: `mailto:${EMAIL}`,
   url: SITE_URL,
   address: { "@type": "PostalAddress", addressLocality: "Riyadh", addressCountry: "SA" },
-  sameAs: ["https://www.linkedin.com/in/manea-abdullah/"],
+  sameAs: [LINKEDIN, GITHUB],
   alumniOf: "University Malaysia Pahang",
   knowsAbout: [
-    "Systems Architecture",
+    "Systems architecture",
     "Multi-tenant SaaS",
     "Real-time systems",
     "LLM integration",
@@ -62,20 +62,22 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${sora.variable} ${manrope.variable}`}>
-      <body>
+    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+      <body className="flex min-h-svh flex-col">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
         />
         <a
           href="#main"
-          className="label sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-gradient-accent focus:px-4 focus:py-2 focus:text-[#0d0c10]"
+          className="sr-only rounded-md bg-fg px-4 py-2 text-sm text-bg focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50"
         >
           Skip to content
         </a>
         <Header />
-        <main id="main">{children}</main>
+        <main id="main" className="flex-1">
+          {children}
+        </main>
         <Footer />
       </body>
     </html>

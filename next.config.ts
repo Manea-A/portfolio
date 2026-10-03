@@ -4,11 +4,11 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   async redirects() {
     return [
-      // legacy case-study URLs — the site is single-page now; ?project=
-      // auto-opens the matching case study panel
+      // old shared links opened case studies in a modal via ?project=<slug>
       {
-        source: "/work/:slug",
-        destination: "/?project=:slug",
+        source: "/",
+        has: [{ type: "query", key: "project", value: "(?<slug>[a-z0-9-]+)" }],
+        destination: "/work/:slug",
         permanent: true,
       },
       { source: "/work", destination: "/#work", permanent: true },

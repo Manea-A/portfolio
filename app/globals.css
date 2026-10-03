@@ -1,457 +1,93 @@
 @import "tailwindcss";
 
-/* ── Design tokens v4 — "one prism" ────────────────────────────
-   Single source of truth: white light split by a prism. Six stops
-   in TRUE SPECTRAL ORDER (amber → orange-red → magenta → violet →
-   blue → cyan), tuned in OKLCH to equal perceived brightness so no
-   stop reads darker or dirtier. Every colored thing on the site —
-   ring, name, streaks, glows, underlines — samples these stops IN
-   ORDER and is painted AS LIGHT (a blurred bloom underneath), never
-   as flat fill. A single --hue-drift rotates all six together, so
-   the palette shifts as one unit and stays matched forever.
-
-   Saturation hierarchy (professional = restrained):
-     L1 full  — the iridescent ring button only
-     L2 ~60%  — the name shimmer, key hover states
-     L3 ~25%  — streaks, stat under-glows, glass edges, underlines
-     L4 ~8%   — ambient background blobs
+/* ── Design tokens ─────────────────────────────────────────────
+   Neutral, editorial, one accent. Light by default, dark follows
+   the OS. Every text/background pair meets WCAG AA (muted ≥ 4.5:1).
 ─────────────────────────────────────────────────────────────── */
-@property --hue-drift {
-  syntax: "<angle>";
-  inherits: true;
-  initial-value: 0deg;
-}
-
 :root {
-  --bg: #070609;        /* near-black, faint cool cast */
-  --bg-soft: #0d0b11;
-  --surface: rgba(255, 255, 255, 0.035);
-  --surface-2: rgba(255, 255, 255, 0.07);
-  --line: rgba(255, 255, 255, 0.09);
-  --line-strong: rgba(255, 255, 255, 0.18);
-  --fg: #f4f2ef;        /* warm white */
-  --muted: #9a95a1;     /* neutral grey, slight violet bias toward the palette */
+  color-scheme: light dark;
 
-  --hue-drift: 0deg;
-
-  /* the prism — hex fallback first, then the OKLCH truth that drifts.
-     Equal L (0.82); chroma trimmed per hue to stay inside sRGB. */
-  --spec-1: #ebbc69;
-  --spec-1: oklch(0.82 0.115 calc(80deg + var(--hue-drift)));  /* amber       */
-  --spec-2: #fdae95;
-  --spec-2: oklch(0.82 0.100 calc(38deg + var(--hue-drift)));  /* orange-red  */
-  --spec-3: #fda7bf;
-  --spec-3: oklch(0.82 0.105 calc(2deg + var(--hue-drift)));   /* magenta     */
-  --spec-4: #ceb5fe;
-  --spec-4: oklch(0.82 0.105 calc(300deg + var(--hue-drift))); /* violet      */
-  --spec-5: #a4c5ff;
-  --spec-5: oklch(0.82 0.090 calc(262deg + var(--hue-drift))); /* blue        */
-  --spec-6: #56d9e7;
-  --spec-6: oklch(0.82 0.115 calc(205deg + var(--hue-drift))); /* cyan        */
-
-  /* soft glows for box-shadows / status lights — drift with the palette */
-  --glow-cyan: rgba(86, 217, 231, 0.5);
-  --glow-cyan: oklch(0.82 0.115 calc(205deg + var(--hue-drift)) / 0.5);
-  --glow-amber: rgba(235, 188, 105, 0.45);
-  --glow-amber: oklch(0.82 0.115 calc(80deg + var(--hue-drift)) / 0.45);
+  --bg: #fafaf9;
+  --surface: #f2f2f0;
+  --fg: #141416;
+  --muted: #5c5d65;
+  --line: #e4e4e1;
+  --line-strong: #cfcfcb;
+  --accent: #2b55c9;
+  --ok: #1f8a4c;
 }
 
-/* the whole palette rotates as one unit — very slow, never distracting */
-html {
-  animation: hue-drift 300s linear infinite;
-}
-@keyframes hue-drift {
-  to {
-    --hue-drift: 360deg;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0c0c0d;
+    --surface: #151517;
+    --fg: #ececee;
+    --muted: #a0a0a8;
+    --line: #232326;
+    --line-strong: #34343a;
+    --accent: #8eaaff;
+    --ok: #4cc283;
   }
 }
 
 @theme inline {
   --color-bg: var(--bg);
-  --color-bg-soft: var(--bg-soft);
   --color-surface: var(--surface);
   --color-fg: var(--fg);
   --color-muted: var(--muted);
-  --color-accent: var(--spec-6);
-  --font-display: var(--font-sora);
-  --font-body: var(--font-manrope);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-ok: var(--ok);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
 html {
-  scroll-behavior: smooth;
   background: var(--bg);
+  scroll-padding-top: 5rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 body {
   background: var(--bg);
   color: var(--fg);
-  font-family: var(--font-manrope), system-ui, sans-serif;
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv11";
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  overflow-x: clip;
 }
 
 ::selection {
-  background: color-mix(in oklab, var(--spec-6) 55%, transparent);
-  color: var(--fg);
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
-/* slim, on-brand scrollbar */
-::-webkit-scrollbar {
-  width: 10px;
-}
-::-webkit-scrollbar-track {
-  background: var(--bg);
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 8px;
-  border: 2px solid var(--bg);
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.22);
-}
-
-/* ── Type voices ─────────────────────────────────────────────── */
-
-.voice-display {
-  font-family: var(--font-sora), system-ui, sans-serif;
-  font-weight: 650;
-  letter-spacing: -0.03em;
-  line-height: 1.04;
-}
-
-/* small tracked caps for eyebrows and metadata */
-.label {
-  font-family: var(--font-manrope), system-ui, sans-serif;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-@media (max-width: 480px) {
-  .label {
-    font-size: 0.74rem;
-  }
-}
-
-/* ── Prism ink ───────────────────────────────────────────────
-   Accent text is a spectral slice sampled IN ORDER (cyan → blue →
-   violet → magenta) — L3. Small enough that it never competes with
-   the name (L2) or the ring (L1). */
-
-.text-gradient {
-  background: linear-gradient(
-    100deg,
-    var(--spec-6) 0%,
-    var(--spec-5) 38%,
-    var(--spec-4) 70%,
-    var(--spec-3) 100%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.bg-gradient-accent {
-  background: linear-gradient(
-    100deg,
-    var(--spec-6) 0%,
-    var(--spec-4) 55%,
-    var(--spec-2) 110%
-  );
-}
-
-/* ── The name — light refracting across the letters (L2) ──────
-   Warm-white first name; second word sweeps the spectrum in order
-   with white woven between stops, shimmering on a slow 22s loop.
-   A blurred twin underneath is the bloom — color as light. */
-
-.prism-name {
-  --prism-grad: linear-gradient(
-    100deg,
-    #ffffff 0%,
-    var(--spec-6) 13%,
-    var(--spec-5) 27%,
-    #ffffff 40%,
-    var(--spec-4) 53%,
-    var(--spec-3) 67%,
-    #ffffff 78%,
-    var(--spec-2) 90%,
-    #ffffff 100%
-  );
-  display: inline-block;
-  position: relative;
-  background-image: var(--prism-grad);
-  background-size: 220% 100%;
-  background-repeat: repeat;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: prism-shift 22s linear infinite;
-}
-.prism-name::before {
-  content: attr(data-text);
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background-image: var(--prism-grad);
-  background-size: 220% 100%;
-  background-repeat: repeat;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: blur(16px);
-  opacity: 0.6;
-  animation: prism-shift 22s linear infinite;
-}
-@keyframes prism-shift {
-  from {
-    background-position: 0% 0;
-  }
-  to {
-    background-position: -220% 0;
-  }
-}
-
-/* ── Stat numbers — white type, tinted by light not paint (L3) ──
-   Each number sits over a soft blurred halo sampled from a single
-   spectral stop; set --halo per number. */
-
-.stat-num {
-  position: relative;
-  display: inline-block;
-  color: var(--fg);
-}
-.stat-num::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 55%;
-  width: 1.9em;
-  height: 1.9em;
-  transform: translate(-50%, -50%);
-  border-radius: 9999px;
-  background: var(--halo, var(--spec-6));
-  filter: blur(18px);
-  opacity: 0.3;
-  z-index: -1;
-  pointer-events: none;
-}
-
-/* ── Glass panels + texture ──────────────────────────────────── */
-
-.glass {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
-/* film grain — keeps large dark fields from banding */
-.grain {
-  position: relative;
-}
-.grain::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.5;
-  border-radius: inherit;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.025 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
-/* halftone dot texture — printed-poster feel on section bands */
-.halftone {
-  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1.4px);
-  background-size: 14px 14px;
-  mask-image: radial-gradient(ellipse 85% 75% at 50% 40%, black 30%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 85% 75% at 50% 40%, black 30%, transparent 100%);
-}
-
-/* faint blueprint grid — the engineering substrate */
-.bg-grid {
-  background-image:
-    linear-gradient(rgba(244, 242, 239, 0.028) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(244, 242, 239, 0.028) 1px, transparent 1px);
-  background-size: 72px 72px;
-  mask-image: radial-gradient(ellipse 90% 80% at 50% 35%, black 40%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 90% 80% at 50% 35%, black 40%, transparent 100%);
-}
-
-/* hairline rules that encode structure */
-.rule {
-  border-top: 1px solid var(--line);
-}
-
-/* ambient glow blobs — the faintest layer (L4 ~8%), each a single
-   spectral stop as pure light */
-.glow-amber {
-  background: radial-gradient(circle, color-mix(in oklab, var(--spec-1) 20%, transparent) 0%, transparent 65%);
-}
-.glow-violet {
-  background: radial-gradient(circle, color-mix(in oklab, var(--spec-4) 20%, transparent) 0%, transparent 65%);
-}
-.glow-cyan {
-  background: radial-gradient(circle, color-mix(in oklab, var(--spec-6) 20%, transparent) 0%, transparent 65%);
-}
-
-/* ── Spotlight card (JS sets --mx / --my in px) ──────────────── */
-
-.spotlight {
-  position: relative;
-  overflow: hidden;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 1.25rem;
-  transition: border-color 0.4s ease, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.spotlight::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 0.45s ease;
-  background: radial-gradient(
-    420px circle at var(--mx, 50%) var(--my, 50%),
-    color-mix(in oklab, var(--spec-6) 14%, transparent),
-    color-mix(in oklab, var(--spec-4) 8%, transparent) 45%,
-    transparent 70%
-  );
-  pointer-events: none;
-}
-.spotlight:hover {
-  border-color: var(--line-strong);
-  transform: translateY(-3px);
-}
-.spotlight:hover::before {
-  opacity: 1;
-}
-
-/* ── Marquee ─────────────────────────────────────────────────── */
-
-@keyframes marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-.marquee-track {
-  display: flex;
-  width: max-content;
-  animation: marquee 42s linear infinite;
-}
-.marquee:hover .marquee-track {
-  animation-play-state: paused;
-}
-
-/* visible, designed focus states */
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--spec-6);
+:focus-visible {
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
   border-radius: 4px;
 }
 
-/* ── Iridescent button ring ──────────────────────────────────
-   A thin conic gradient travels around the border (masked to the
-   ring only) with a blurred twin behind it for the halo. The sweep
-   animates a REGISTERED --angle custom property — never transform —
-   so pills don't distort. In browsers without @property, keyframes
-   on the unregistered variable flip 0→360deg discretely, which
-   renders identically at both ends: a clean static-ring fallback. */
-@property --angle {
-  syntax: "<angle>";
-  inherits: false;
-  initial-value: 0deg;
+/* small metadata in mono — dates, roles, section labels */
+.meta {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0;
 }
 
-.irid-btn {
-  position: relative;
-  isolation: isolate;
-  background: #0d0c10; /* near-black pill surface, neutral */
-  border: 1px solid var(--line);
-  border-radius: 9999px;
-  --ring-o: 0.35;
-  --glow-o: 0.15;
-  --spin: 4s;
+/* inline text link: quiet underline that firms up on hover */
+.link {
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1px;
+  transition: text-decoration-color 0.15s ease, color 0.15s ease;
 }
-.irid-btn::before,
-.irid-btn::after {
-  content: "";
-  position: absolute;
-  inset: -1px; /* sit on top of the hairline border */
-  border-radius: inherit;
-  padding: 1.5px; /* ring thickness */
-  --angle: 35deg; /* static fallback angle; animation overrides it */
-  /* the full prism, in spectral order — the site's L1 reference */
-  background: conic-gradient(
-    from var(--angle),
-    var(--spec-1),
-    var(--spec-2),
-    var(--spec-3),
-    var(--spec-4),
-    var(--spec-5),
-    var(--spec-6),
-    var(--spec-1)
-  );
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask-composite: exclude;
-  pointer-events: none;
-  animation: irid-spin var(--spin) linear infinite;
-}
-.irid-btn::before {
-  z-index: 1;
-  opacity: var(--ring-o);
-  transition: opacity 0.3s ease-out;
-}
-.irid-btn::after {
-  z-index: -1;
-  opacity: var(--glow-o);
-  filter: blur(10px);
-  transition: opacity 0.3s ease-out;
-}
-@keyframes irid-spin {
-  to {
-    --angle: 395deg; /* 35deg + full turn, so the loop is seamless */
-  }
-}
-.irid-btn:hover,
-.irid-btn:focus-visible {
-  --ring-o: 1;
-  --glow-o: 0.55;
-  --spin: 2.5s;
-}
-.irid-btn:focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: 2px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .irid-btn::before,
-  .irid-btn::after {
-    animation: none; /* frozen gradient; opacity transitions remain */
-  }
-}
-
-/* ── Reduced motion: everything settles instantly ────────────── */
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-    animation: none; /* freeze the palette drift */
-  }
-  .marquee-track,
-  .prism-name,
-  .prism-name::before {
-    animation: none; /* static prism, opacity/gradient still show */
-  }
-  .spotlight {
-    transition: none;
-  }
+.link:hover {
+  text-decoration-color: currentColor;
 }

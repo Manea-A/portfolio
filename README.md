@@ -1,24 +1,29 @@
 # Manea Abdullah — Portfolio
 
-Dark editorial portfolio for a systems architect. Next.js 15 (App Router),
-Tailwind CSS 4, zero animation libraries — motion is IntersectionObserver +
-CSS, the hero graph is vanilla Canvas 2D.
+Personal site for a systems architect and engineering lead.
+Next.js 15 (App Router, fully static), Tailwind CSS 4, Geist. No animation
+libraries; all content is server-rendered and readable without JavaScript.
 
-## Design system
+## Structure
 
-| Token | Value | Use |
-|---|---|---|
-| `--ink` | `#0B0A08` | Background (warm near-black) |
-| `--paper` | `#EDE8DE` | Primary text |
-| `--muted` | `#97907F` | Secondary text |
-| `--brass` | `#C99A3F` | The single accent |
+| Path | What |
+|---|---|
+| `app/page.tsx` | Home: intro, selected work, experience, expertise, about, contact |
+| `app/work/[slug]/page.tsx` | One static case-study page per project |
+| `lib/projects.ts` | All case-study content, metrics, and architecture diagrams |
+| `lib/site.ts` | Site URL, email, and profile links |
+| `components/ArchDiagram.tsx` | Architecture diagrams drawn from the data in `projects.ts` |
 
-Type voices: **Archivo** (wdth 125, uppercase) for display · Archivo for body ·
-**Fragment Mono** for labels/metrics · **Instrument Serif italic** for the one
-editorial word per screen.
+## Design
 
-Accessibility baseline: WCAG AA contrast, keyboard focus states, skip link,
-`prefers-reduced-motion` respected everywhere (canvas renders a static frame).
+Neutral, editorial, one accent colour. Light theme by default; dark follows
+the OS. Tokens live at the top of `app/globals.css`; every text colour meets
+WCAG AA contrast.
+
+## Adding screenshots
+
+Put an image in `public/projects/` and set `image: "/projects/<file>.png"` on
+the project in `lib/projects.ts`. It appears at the top of the case study.
 
 ## Run locally
 
@@ -26,20 +31,3 @@ Accessibility baseline: WCAG AA contrast, keyboard focus states, skip link,
 npm install
 npm run dev
 ```
-
-## Deploy (GitHub → Vercel)
-
-1. Create a new GitHub repo and push this folder:
-   ```bash
-   git init && git add -A && git commit -m "Portfolio v1"
-   git remote add origin git@github.com:<you>/portfolio.git
-   git push -u origin main
-   ```
-2. On vercel.com → **Add New Project** → import the repo. No config needed —
-   Vercel detects Next.js. You get `<project>.vercel.app` immediately.
-3. Later: buy a domain and add it in Vercel → Settings → Domains.
-
-## Content lives in one place
-
-All project copy, metrics, and architecture diagrams: `lib/projects.ts`.
-Experience, capabilities, recognition: `app/page.tsx`. No CMS to maintain.

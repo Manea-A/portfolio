@@ -1,18 +1,27 @@
+import { EMAIL, GITHUB, LINKEDIN } from "@/lib/site";
+
 export default function Footer() {
   return (
-    <footer className="rule relative overflow-hidden">
-      <div
-        aria-hidden="true"
-        className="glow-violet pointer-events-none absolute -bottom-32 left-1/2 h-64 w-[36rem] -translate-x-1/2 opacity-60"
-      />
-      <div className="relative mx-auto flex max-w-6xl flex-col gap-2 px-5 py-10 md:flex-row md:items-center md:justify-between md:px-8">
-        <p className="label text-muted">
-          © {new Date().getFullYear()} Manea Abdullah Al-Awbathani
-        </p>
-        <p className="label text-muted">
-          Riyadh, Saudi Arabia · UTC+3 ·{" "}
-          <span className="text-gradient">Next.js × Motion</span>
-        </p>
+    <footer className="border-t border-line">
+      <div className="mx-auto flex max-w-5xl flex-col gap-3 px-5 py-8 text-sm text-muted md:flex-row md:items-center md:justify-between md:px-8">
+        <p>© {new Date().getFullYear()} Manea Abdullah Al-Awbathani · Riyadh, Saudi Arabia</p>
+        <ul className="flex gap-5">
+          <li>
+            <a href={`mailto:${EMAIL}`} className="transition-colors hover:text-fg">
+              Email
+            </a>
+          </li>
+          <li>
+            <a href={LINKEDIN} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-fg">
+              LinkedIn
+            </a>
+          </li>
+          <li>
+            <a href={GITHUB} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-fg">
+              GitHub
+            </a>
+          </li>
+        </ul>
       </div>
     </footer>
   );
