@@ -6,12 +6,17 @@ import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } fro
 
 type Card = { slug: string; title: string; shot: string; domain: string };
 
-/* fanned layout: back, middle, front */
+/*
+ * Fanned layout: back, middle, front. Depth is real translateZ, not z-index —
+ * inside a preserve-3d parent z-index is ignored, so coplanar cards z-fight
+ * and slice through each other as the stack tilts.
+ */
 const LAYOUT = [
-  { x: "-20%", y: "-10%", rotate: -8, z: 0, scale: 0.8 },
-  { x: "20%", y: "-2%", rotate: 6, z: 1, scale: 0.84 },
-  { x: "-2%", y: "26%", rotate: -1.5, z: 2, scale: 0.92 },
+  { x: "-22%", y: "-14%", rotate: -8, z: 0, scale: 0.8 },
+  { x: "22%", y: "-4%", rotate: 6, z: 60, scale: 0.84 },
+  { x: "-2%", y: "28%", rotate: -1.5, z: 120, scale: 0.9 },
 ];
+const HOVER_Z = 180;
 
 /**
  * Three live products stacked in perspective. The whole stack tilts toward
@@ -49,8 +54,8 @@ export default function HeroShowcase({ cards }: { cards: Card[] }) {
             <motion.div
               key={c.slug}
               className="absolute left-[8%] top-[8%] w-[84%]"
-              style={{ x: l.x, y: l.y, rotate: l.rotate, scale: l.scale, zIndex: l.z }}
-              whileHover={reduced ? undefined : { rotate: 0, scale: l.scale + 0.04, zIndex: 5 }}
+              style={{ x: l.x, y: l.y, z: l.z, rotate: l.rotate, scale: l.scale, zIndex: i }}
+              whileHover={reduced ? undefined : { rotate: 0, scale: l.scale + 0.03, z: HOVER_Z, zIndex: 5 }}
               transition={{ type: "spring", stiffness: 260, damping: 24 }}
             >
               <Link
