@@ -7,18 +7,18 @@ import Footer from "@/components/Footer";
 import { EMAIL, GITHUB, LINKEDIN, SITE_URL } from "@/lib/site";
 
 const description =
-  "Systems architect and engineering lead in Riyadh. I design and build production platforms: multi-tenant SaaS, real-time healthcare systems, and AI for industrial operations.";
+  "Senior software engineer, technical lead, and software architect in Riyadh. I design, build, and ship production software: multi-tenant SaaS, real-time telehealth, marketplaces, and AI for industrial systems.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Manea Abdullah · Systems Architect & Engineering Lead",
+    default: "Manea Abdullah · Senior Software Engineer & Software Architect",
     template: "%s · Manea Abdullah",
   },
   description,
   alternates: { canonical: "/" },
   openGraph: {
-    title: "Manea Abdullah · Systems Architect & Engineering Lead",
+    title: "Manea Abdullah · Senior Software Engineer & Software Architect",
     description,
     type: "website",
     url: SITE_URL,
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Manea Abdullah · Systems Architect & Engineering Lead",
+    title: "Manea Abdullah · Senior Software Engineer & Software Architect",
     description,
   },
 };
@@ -42,7 +42,7 @@ const personJsonLd = {
   "@context": "https://schema.org",
   "@type": "Person",
   name: "Manea Abdullah Al-Awbathani",
-  jobTitle: "Head of Software & AI",
+  jobTitle: "Software Engineering Lead",
   email: `mailto:${EMAIL}`,
   url: SITE_URL,
   address: { "@type": "PostalAddress", addressLocality: "Riyadh", addressCountry: "SA" },

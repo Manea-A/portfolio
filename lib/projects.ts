@@ -1,230 +1,347 @@
 /**
- * All case-study content. Facts and numbers come from Manea's CV —
- * edit wording freely, but never add a metric that can't be backed up.
+ * All project content. Facts and numbers come from Manea's CV and the
+ * projects' own public sites — edit wording freely, but never add a
+ * metric that can't be backed up.
+ *
+ * Assets: logos in public/projects/logos/, screenshots (1440×900 webp)
+ * in public/projects/shots/.
  */
 
 export type Metric = { value: string; label: string };
-
-export type DiagramNode = {
-  id: string;
-  label: string;
-  sub?: string;
-  x: number; // 0–100 grid
-  y: number; // 0–100 grid
-};
-
-export type DiagramEdge = { from: string; to: string; label?: string };
+export type Link = { label: string; href: string };
 
 export type Project = {
   slug: string;
   title: string;
   /** one sentence for cards and meta descriptions */
   line: string;
-  context: string;
+  org: string;
   year: string;
   role: string;
-  problem: string;
+  kind: "product" | "client-site";
+  logo: string;
+  /** dark tile behind light logos */
+  logoDark?: boolean;
+  /** wordmark rather than a square icon */
+  logoWide?: boolean;
+  shot?: string;
+  links: Link[];
   summary: string;
+  problem?: string;
+  /** what I built — short, concrete bullets */
+  built: string[];
+  /** compact system flow, left to right */
+  flow?: string[];
   stack: string[];
   metrics: Metric[];
   decisions: { title: string; body: string }[];
-  outcome: string;
-  /** Plain-language description of the architecture flow */
-  flow?: string;
-  diagram?: { nodes: DiagramNode[]; edges: DiagramEdge[] };
-  /** Optional screenshot, e.g. "/projects/healthwatch.png" (public/projects/) */
-  image?: string;
-  /** Optional honest retrospective: what broke, what you'd change */
-  retrospective?: string;
+  outcome?: string;
+  /** other products running on the same platform */
+  family?: { title: string; line: string; logo: string; shot: string; href: string }[];
   featured: boolean;
 };
 
 export const projects: Project[] = [
   {
+    slug: "isopluss",
+    title: "ISOPluss",
+    line: "Multi-tenant SaaS for food-safety and quality compliance, live as three products.",
+    org: "ISOPluss, Riyadh",
+    year: "2025–present",
+    role: "Co-founder & Lead Software Architect",
+    kind: "product",
+    logo: "/projects/logos/isopluss.png",
+    shot: "/projects/shots/isopluss.webp",
+    links: [{ label: "isopluss.org", href: "https://isopluss.org/" }],
+    summary:
+      "An enterprise B2B platform that runs ISO 22000, FSSC 22000, and HACCP in one place: traceability, monitoring, document control, and audits for food operations, in Arabic and English.",
+    problem:
+      "Food-safety compliance is usually run on binders and spreadsheets, which makes it slow to operate and hard to audit across sites.",
+    built: [
+      "Co-founded the company and architected the multi-tenant platform end to end.",
+      "Designed the NestJS, Next.js, PostgreSQL, Redis, and TypeORM architecture with JWT and role-based access control.",
+      "Built a schema-driven engine for digital workflows, document control, audit management, corrective actions, and analytics.",
+      "Own cloud infrastructure, CI/CD, DevOps automation, and production data security.",
+    ],
+    flow: ["Standard configuration", "Schema engine", "Workflows & documents", "Audits & corrective actions", "Per-tenant analytics"],
+    stack: ["NestJS", "Next.js", "PostgreSQL", "Redis", "TypeORM", "JWT / RBAC", "OpenAPI", "CI/CD"],
+    metrics: [
+      { value: "3", label: "Live products on the platform" },
+      { value: "27", label: "Working modules" },
+      { value: "AR / EN", label: "Fully bilingual, RTL-aware" },
+    ],
+    decisions: [
+      {
+        title: "Schema-driven workflows instead of hard-coded ones",
+        body: "Standards differ between clients and change over time. Generating forms, workflows, and document control from configuration makes a new standard a data change rather than a development cycle.",
+      },
+      {
+        title: "One codebase, many tenants",
+        body: "Multi-tenant PostgreSQL with strict isolation and per-tenant role-based access lets a small team serve enterprise clients from one deployment.",
+      },
+      {
+        title: "API-first",
+        body: "A documented OpenAPI surface from the start, so integrations never depend on undocumented behaviour.",
+      },
+    ],
+    outcome:
+      "In production for food manufacturers, processors, and warehouses in the Gulf, and running as two further products for HACCP and ISO 9001 quality management.",
+    family: [
+      {
+        title: "HaccPlus",
+        line: "HACCP plans, CCP monitoring, and traceability for food producers.",
+        logo: "/projects/logos/haccplus.png",
+        shot: "/projects/shots/haccplus.webp",
+        href: "https://haccplus.com/",
+      },
+      {
+        title: "IsoProfissional",
+        line: "Quality management for ISO 9001 teams: documents, audits, corrective actions.",
+        logo: "/projects/logos/isoprofissional.png",
+        shot: "/projects/shots/isoprofissional.webp",
+        href: "https://isoprofissional.com/",
+      },
+    ],
+    featured: true,
+  },
+  {
     slug: "healthwatch",
     title: "HealthWatch",
     line: "Real-time telehealth platform streaming smartwatch vitals into hospital workflows.",
-    context: "Me'Kaaz, Riyadh",
-    year: "2025",
-    role: "Technical Lead: cloud architecture, real-time pipeline, team direction",
-    problem:
-      "Hospitals had no way to monitor patient vitals remotely in real time and act on them inside their existing clinical workflow.",
+    org: "Me'Kaaz, Riyadh",
+    year: "Jul 2025 – Jan 2026",
+    role: "Senior Software Engineer",
+    kind: "product",
+    logo: "/projects/logos/mekaaz.png",
+    shot: "/projects/shots/healthwatch.webp",
+    links: [{ label: "mekaaz.com", href: "https://mekaaz.com/" }],
     summary:
-      "The first BLE-smartwatch telehealth platform in the MENA region. It connects wearables, a patient mobile app, and a multi-tenant hospital portal, and was built to meet NCA and MOH compliance requirements.",
+      "A real-time ecosystem connecting BLE smartwatches, patient apps, and a multi-tenant hospital portal for Me'Kaaz, a Saudi chronic-care company, built to NCA and MOH requirements.",
+    problem:
+      "Hospitals needed to monitor patient vitals remotely in real time and act on them inside their existing clinical workflow.",
+    built: [
+      "Architected and delivered the platform connecting patient applications with hospital systems.",
+      "Engineered the real-time cloud infrastructure behind the vitals pipeline.",
+      "Delivered hospital dashboards, ward heatmaps, automated clinical alerts, and branded deployment workflows.",
+      "Coordinated design, engineering, and QA through regional rollout, knowledge transfer, and mentoring.",
+    ],
+    flow: ["BLE smartwatch", "Patient app", "Real-time ingest", "Clinical core", "Hospital portal & alerts"],
     stack: ["NestJS", "PostgreSQL", "Redis", "Next.js", "WebSockets", "BLE", "AWS"],
     metrics: [
       { value: "<3s", label: "Vitals latency, watch to ward" },
-      { value: "99.9%", label: "Uptime across patient and hospital systems" },
-      { value: "<1 hr", label: "To deploy a new branded hospital" },
-      { value: "<60s", label: "Patient onboarding" },
+      { value: "99.9%", label: "Uptime" },
     ],
     decisions: [
       {
         title: "Event-driven ingestion instead of polling",
-        body: "Vitals stream from the watches through an event pipeline rather than scheduled pulls. Clinical alerts depend on low, predictable latency, and polling could not guarantee it.",
+        body: "Clinical alerts depend on low, predictable latency, so vitals stream through an event pipeline rather than scheduled pulls.",
       },
       {
         title: "Multi-tenancy from the first release",
-        body: "Each hospital is an isolated tenant with its own branding, wards, and roles. This is what made onboarding a new hospital a configuration task of under an hour rather than an integration project.",
+        body: "Each hospital is an isolated tenant with its own branding, wards, and roles, which turned onboarding a hospital into configuration instead of integration work.",
       },
       {
         title: "Compliance designed into the schema",
-        body: "NCA and MOH requirements shaped data residency, doctor–patient access control, and audit trails at the data-model level, so they did not have to be retrofitted later.",
+        body: "NCA and MOH requirements shaped data residency, doctor–patient access, and audit trails at the data-model level.",
       },
     ],
     outcome:
-      "Live real-time monitoring with automated clinical alerts and ward heatmaps, used as the base for onboarding hospitals across the region.",
-    flow:
-      "Vitals stream from BLE smartwatches into a real-time ingest pipeline and on to the clinical core, which drives automated alerts, the multi-tenant hospital portal, and live ward heatmaps.",
-    diagram: {
-      nodes: [
-        { id: "watch", label: "BLE Smartwatch", sub: "vitals stream", x: 6, y: 50 },
-        { id: "app", label: "Patient App", sub: "mobile", x: 30, y: 18 },
-        { id: "ingest", label: "Real-Time Ingest", sub: "event pipeline", x: 34, y: 80 },
-        { id: "core", label: "Clinical Core", sub: "alerts · rules · audit", x: 62, y: 50 },
-        { id: "portal", label: "Hospital Portal", sub: "multi-tenant", x: 92, y: 18 },
-        { id: "ward", label: "Ward Heatmaps", sub: "live view", x: 92, y: 82 },
-      ],
-      edges: [
-        { from: "watch", to: "ingest", label: "<3s" },
-        { from: "watch", to: "app" },
-        { from: "app", to: "core" },
-        { from: "ingest", to: "core" },
-        { from: "core", to: "portal" },
-        { from: "core", to: "ward" },
-      ],
-    },
-    featured: true,
-  },
-  {
-    slug: "isopluss",
-    title: "ISOPluss FSMS",
-    line: "Multi-tenant SaaS that turns ISO 22000 and HACCP compliance into configurable digital workflows.",
-    context: "ISOPluss, Riyadh",
-    year: "2025–present",
-    role: "Co-founder & CTO: architecture, infrastructure, product engineering",
-    problem:
-      "Food-safety compliance under ISO 22000 and HACCP is manual and paper-based, which makes it slow to run and hard to audit at scale.",
-    summary:
-      "An enterprise B2B platform for food-safety management. A schema-driven engine generates workflows, document control, audit management, and analytics from configuration instead of hard-coded screens.",
-    stack: ["NestJS", "Next.js", "PostgreSQL", "Redis", "TypeORM", "OpenAPI"],
-    metrics: [],
-    decisions: [
-      {
-        title: "Schema-driven workflows instead of hard-coded ones",
-        body: "Compliance standards differ between clients and change over time. Generating forms, workflows, and document control from configuration means a new standard is a data change, not a development cycle.",
-      },
-      {
-        title: "One codebase, many tenants",
-        body: "Multi-tenant PostgreSQL with strict row-level isolation and per-tenant role-based access. It lets a small founding team serve enterprise clients from a single deployment.",
-      },
-      {
-        title: "API-first",
-        body: "A fully documented OpenAPI surface from the start, so integrations and new clients never depend on undocumented behaviour.",
-      },
-    ],
-    outcome:
-      "In production as multi-tenant cloud infrastructure covering document control, audits, objective tracking, corrective actions, and analytics.",
-    flow:
-      "Configurations for ISO 22000 and HACCP feed a schema engine that generates document control, audit management, and corrective-action workflows, all reporting into per-tenant analytics.",
-    diagram: {
-      nodes: [
-        { id: "config", label: "Standard Config", sub: "ISO 22000 · HACCP", x: 6, y: 50 },
-        { id: "engine", label: "Schema Engine", sub: "generates workflows", x: 33, y: 50 },
-        { id: "docs", label: "Document Control", x: 62, y: 14 },
-        { id: "audit", label: "Audit Management", x: 62, y: 50 },
-        { id: "capa", label: "Corrective Actions", x: 62, y: 86 },
-        { id: "dash", label: "Analytics", sub: "per tenant", x: 92, y: 50 },
-      ],
-      edges: [
-        { from: "config", to: "engine" },
-        { from: "engine", to: "docs" },
-        { from: "engine", to: "audit" },
-        { from: "engine", to: "capa" },
-        { from: "audit", to: "dash" },
-      ],
-    },
+      "Live monitoring with automated clinical alerts and ward heatmaps, rolled out regionally with hospital deployment workflows.",
     featured: true,
   },
   {
     slug: "gavelmarket",
     title: "GavelMarket",
-    line: "Real-time auction platform built for high-concurrency bidding and payment integrity.",
-    context: "Independent, Saudi Arabia",
-    year: "2025–present",
-    role: "Architect and sole engineer, full stack",
+    line: "Real-time online auction marketplace for Saudi Arabia, built for high-concurrency bidding.",
+    org: "GavelMarket, Saudi Arabia",
+    year: "Oct 2025 – present",
+    role: "Architect & sole engineer (part-time)",
+    kind: "product",
+    logo: "/projects/logos/gavelmarket.svg",
+    shot: "/projects/shots/gavelmarket.webp",
+    links: [{ label: "gavelmarket.com", href: "https://www.gavelmarket.com/" }],
+    summary:
+      "A live auction marketplace where people buy and sell through timed auctions, with real-time bidding, secure payments, and notifications.",
     problem:
       "Online auctions need fair, real-time bidding under heavy concurrency without losing or duplicating a single transaction.",
-    summary:
-      "A real-time auction platform with timer-driven auction lifecycles, rate limiting, structured logging, and data-integrity guarantees across bidding and payments.",
-    stack: ["Express", "Socket.io", "Prisma", "PostgreSQL", "Next.js", "React", "Zustand"],
+    built: [
+      "Architected and built the full stack: Express, Prisma, PostgreSQL, Socket.io, Next.js, and React.",
+      "Implemented timer-based auction lifecycle events, rate limiting, structured logging, and data-integrity controls for payments.",
+      "Integrated JWT auth, Cloudinary media, and SendGrid and Twilio notifications.",
+    ],
+    flow: ["Bidders", "Rate-limited API", "Socket.io bid engine", "Payments", "PostgreSQL"],
+    stack: ["Express", "Socket.io", "Prisma", "PostgreSQL", "Next.js", "React", "JWT", "Cloudinary", "SendGrid", "Twilio"],
     metrics: [],
     decisions: [
       {
         title: "Each auction is a state machine",
-        body: "Opening, soft-close extensions, and settlement are timer-driven lifecycle events, so the bidding rules are enforced by the system rather than by client behaviour.",
+        body: "Opening, soft-close extensions, and settlement are timer-driven lifecycle events, so bidding rules are enforced by the server, not the client.",
       },
       {
         title: "Integrity before features",
-        body: "Rate limiting, structured logging with Winston, and Zod validation at every boundary. In an auction, one inconsistent write becomes a refund and a dispute.",
+        body: "Rate limiting, structured logging, and validation at every boundary. In an auction, one inconsistent write becomes a refund and a dispute.",
       },
     ],
-    outcome:
-      "A production-grade real-time bidding core with secure payments, notifications through SendGrid and Twilio, and full observability.",
-    flow:
-      "Bidders connect through a rate-limited API gateway to a Socket.io bid engine driven by a state machine; bids and payments settle into PostgreSQL.",
-    diagram: {
-      nodes: [
-        { id: "bidder", label: "Bidders", sub: "web · mobile", x: 6, y: 50 },
-        { id: "gate", label: "API Gateway", sub: "rate-limited", x: 32, y: 50 },
-        { id: "rt", label: "Bid Engine", sub: "Socket.io state machine", x: 60, y: 20 },
-        { id: "pay", label: "Payments", sub: "secure flows", x: 60, y: 80 },
-        { id: "db", label: "PostgreSQL", sub: "transactional", x: 90, y: 50 },
-      ],
-      edges: [
-        { from: "bidder", to: "gate" },
-        { from: "gate", to: "rt", label: "ws" },
-        { from: "gate", to: "pay" },
-        { from: "rt", to: "db" },
-        { from: "pay", to: "db" },
-      ],
-    },
+    outcome: "Live at gavelmarket.com.",
     featured: true,
   },
   {
     slug: "covita",
     title: "COVITA",
-    line: "Multi-vendor coffee marketplace for wholesale, retail, and subscriptions in the Gulf.",
-    context: "Contract, Riyadh",
-    year: "2026–present",
-    role: "End-to-end architecture and development",
-    problem:
-      "The Saudi and Gulf coffee market had no single platform covering wholesale, retail, and subscription sales.",
+    line: "Saudi coffee marketplace connecting importers, roasters, cafés, and coffee lovers.",
+    org: "COVITA, Riyadh",
+    year: "Feb 2026 – present",
+    role: "Lead architect & developer (contract)",
+    kind: "product",
+    logo: "/projects/logos/covita.svg",
+    shot: "/projects/shots/covita.webp",
+    links: [{ label: "covita-app.vercel.app", href: "https://covita-app.vercel.app/landing/" }],
     summary:
-      "A multi-vendor marketplace combining B2B wholesale, B2C retail, and subscriptions, with vendor onboarding, catalogues, order management, and payments across web and mobile.",
+      "A verified B2B and B2C coffee marketplace, from farm to cup: green-coffee importers, roasters, cafés, and consumers on one platform with a verified catalogue, requests for quotes, samples, compliant e-invoices, and secure payment.",
+    built: [
+      "Led end-to-end architecture and development.",
+      "Built vendor onboarding, product catalogues, order management, and payment integration across web and mobile.",
+      "Designed the platform for wholesale, retail, and subscription business models.",
+    ],
+    flow: ["Vendors & roasters", "Verified catalogue", "Quotes & orders", "Payments & e-invoices", "Buyers"],
     stack: ["Next.js", "NestJS", "PostgreSQL"],
     metrics: [],
     decisions: [],
-    outcome: "In active development.",
-    featured: false,
+    featured: true,
+  },
+  {
+    slug: "onagents",
+    title: "OnAgents",
+    line: "AI agents plus a human team that find customers for local businesses and do the work.",
+    org: "OnAgents",
+    year: "Founder",
+    role: "Founder: product, architecture, engineering",
+    kind: "product",
+    logo: "/projects/logos/onagents.svg",
+    shot: "/projects/shots/onagents.webp",
+    links: [{ label: "on-agents.vercel.app", href: "https://on-agents.vercel.app/" }],
+    summary:
+      "OnAgents maps the businesses that need a service, researches each one, writes to them personally, and delivers the video, content, and campaigns once they say yes. AI agents do the research and outreach; nothing is sent until the client approves. Arabic and English.",
+    built: ["Founded the product and designed and built it end to end."],
+    flow: ["Find businesses", "Research", "Personal outreach", "Client approval", "Delivery"],
+    stack: ["Next.js", "LLMs", "AI agents"],
+    metrics: [],
+    decisions: [],
+    featured: true,
+  },
+  {
+    slug: "emars",
+    title: "EMARS",
+    line: "Energy monitoring, analysis, and reporting SaaS serving 100+ enterprise facilities.",
+    org: "MYCES, Malaysia",
+    year: "Dec 2023 – 2024",
+    role: "Software Engineer",
+    kind: "product",
+    logo: "/projects/logos/emars.png",
+    shot: "/projects/shots/emars.webp",
+    links: [{ label: "myces-emars.com", href: "https://www.myces-emars.com/" }],
+    summary:
+      "EMARS is MYCES's energy monitoring, analysis, and reporting system for enterprise facilities.",
+    built: [
+      "Built upgrades and features across the platform.",
+      "Delivered threshold-based alerting and treemap analytics.",
+      "Shipped responsive web and mobile interfaces and strengthened security with role-based access.",
+    ],
+    stack: ["Vue.js", "NestJS", "MySQL", "D3.js"],
+    metrics: [
+      { value: "100+", label: "Enterprise facilities" },
+      { value: "17%", label: "Reported cut in energy waste" },
+      { value: "22%", label: "Higher user engagement" },
+    ],
+    decisions: [],
+    outcome:
+      "Alerting and analytics contributed to a reported 17% reduction in energy waste across client facilities.",
+    featured: true,
   },
   {
     slug: "agrofarm",
     title: "AgroFarm",
     line: "Farm-monitoring platform. Gold Medal, Johor Agriculture Department Innovation Competition 2024.",
-    context: "MYCES, Malaysia",
+    org: "MYCES, Malaysia",
     year: "2024",
-    role: "Delivery lead, requirements to MVP",
-    problem: "Farm operations ran on manual, disconnected processes.",
+    role: "Software Engineering Lead",
+    kind: "product",
+    logo: "/projects/logos/myces.png",
+    links: [],
     summary:
-      "A farm-monitoring platform with real-time data, resource planning, automated pricing tools, and reporting.",
+      "A farm-monitoring platform covering real-time data, resource planning, automated pricing tools, and reporting.",
+    built: [
+      "Took the platform from requirements to MVP.",
+      "Built real-time monitoring, resource planning, pricing tools, and reporting.",
+    ],
     stack: ["Vue.js", "NestJS", "MySQL", "D3.js"],
     metrics: [{ value: "Gold", label: "Johor Innovation Competition 2024" }],
     decisions: [],
-    outcome:
-      "Won the Gold Medal at the Johor Agriculture Department Innovation Competition 2024.",
+    outcome: "Won the Gold Medal at the Johor Agriculture Department Innovation Competition 2024.",
+    featured: false,
+  },
+  {
+    slug: "ems",
+    title: "EMS & Dam Monitoring",
+    line: "Enterprise energy-management and dam-safety monitoring platforms for MYCES Group.",
+    org: "MYCES, Malaysia",
+    year: "2024",
+    role: "Software Engineering Lead",
+    kind: "product",
+    logo: "/projects/logos/myces.png",
+    shot: "/projects/shots/ems.webp",
+    links: [{ label: "live.mycesgroup.com", href: "https://www.live.mycesgroup.com/" }],
+    summary:
+      "Enterprise monitoring platforms for the energy and dam-safety sectors, delivered from requirements through MVP.",
+    built: [
+      "Delivered both platforms from requirements through MVP using reusable architecture and Agile practices.",
+      "Authored the SRS, SDD, and STR/STD documentation and mentored junior developers.",
+    ],
+    stack: [],
+    metrics: [{ value: "20%", label: "Shorter delivery timelines across MYCES platforms" }],
+    decisions: [],
+    featured: false,
+  },
+  {
+    slug: "saudihlm",
+    title: "Saudi HLM",
+    line: "Bilingual company website for a Saudi logistics company.",
+    org: "Saudi HLM Logistics",
+    year: "Client",
+    role: "Designed and built the website",
+    kind: "client-site",
+    logo: "/projects/logos/saudihlm.png",
+    logoWide: true,
+    shot: "/projects/shots/saudihlm.webp",
+    links: [{ label: "saudihlm.com", href: "https://saudihlm.com/" }],
+    summary: "Company website for Saudi HLM: transport, storage, and delivery services, in Arabic and English.",
+    built: ["Designed and built the website."],
+    stack: ["Next.js"],
+    metrics: [],
+    decisions: [],
+    featured: false,
+  },
+  {
+    slug: "era-ventures",
+    title: "ERA Ventures",
+    line: "Website for a Riyadh private-workspace and startup ecosystem.",
+    org: "ERA Ventures, Riyadh",
+    year: "Client",
+    role: "Designed and built the website",
+    kind: "client-site",
+    logo: "/projects/logos/era.png",
+    logoWide: true,
+    logoDark: true,
+    shot: "/projects/shots/era.webp",
+    links: [{ label: "era-ventures.sa", href: "https://www.era-ventures.sa/" }],
+    summary: "Bilingual website for ERA Ventures, a private workspace and business ecosystem for founders and startups.",
+    built: ["Designed and built the website."],
+    stack: [],
+    metrics: [],
+    decisions: [],
     featured: false,
   },
 ];
 
 export const bySlug = (slug: string) => projects.find((p) => p.slug === slug);
+export const caseStudies = projects.filter((p) => p.kind === "product");

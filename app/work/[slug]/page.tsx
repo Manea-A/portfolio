@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
-import ArchDiagram from "@/components/ArchDiagram";
-import { bySlug, projects } from "@/lib/projects";
+import { BrowserShot, Flow, Logo } from "@/components/ProjectVisuals";
+import { bySlug, caseStudies } from "@/lib/projects";
 
 type Params = { params: Promise<{ slug: string }> };
 
 export function generateStaticParams() {
-  return projects.map((p) => ({ slug: p.slug }));
+  return caseStudies.map((p) => ({ slug: p.slug }));
 }
 
 export const dynamicParams = false;
@@ -35,22 +34,41 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
 
 export default async function CaseStudy({ params }: Params) {
   const p = bySlug((await params).slug);
-  if (!p) notFound();
+  if (!p || p.kind !== "product") notFound();
 
-  const i = projects.indexOf(p);
-  const next = projects[(i + 1) % projects.length];
+  const i = caseStudies.indexOf(p);
+  const next = caseStudies[(i + 1) % caseStudies.length];
 
   return (
     <article className="mx-auto max-w-5xl px-5 md:px-8">
-      <header className="pb-12 pt-10 md:pb-16 md:pt-14">
+      <header className="pb-10 pt-10 md:pt-14">
         <Link href="/#work" className="meta text-muted transition-colors hover:text-fg">
           ← All work
         </Link>
-        <p className="meta mt-10 text-muted">
-          {p.context} · {p.year}
-        </p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-tight md:text-5xl">{p.title}</h1>
-        <p className="mt-5 max-w-3xl text-lg leading-relaxed md:text-xl">{p.summary}</p>
+        <div className="mt-10 flex items-center gap-4">
+          <Logo src={p.logo} alt={`${p.title} logo`} dark={p.logoDark} size={52} />
+          <div>
+            <p className="meta text-muted">{p.org}</p>
+            <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">{p.title}</h1>
+          </div>
+        </div>
+        <p className="mt-6 max-w-3xl text-lg leading-relaxed md:text-xl">{p.summary}</p>
+
+        {p.links.length > 0 && (
+          <div className="mt-7 flex flex-wrap gap-3">
+            {p.links.map((l) => (
+              <a
+                key={l.href}
+                href={l.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-md bg-fg px-4 py-2 text-sm font-medium text-bg transition-opacity hover:opacity-85"
+              >
+                Visit {l.label} <span aria-hidden="true">↗</span>
+              </a>
+            ))}
+          </div>
+        )}
 
         <dl className="mt-10 grid gap-6 border-t border-line pt-6 text-sm sm:grid-cols-3">
           <div>
@@ -61,22 +79,23 @@ export default async function CaseStudy({ params }: Params) {
             <dt className="meta text-muted">Timeline</dt>
             <dd className="mt-1.5">{p.year}</dd>
           </div>
-          <div>
-            <dt className="meta text-muted">Stack</dt>
-            <dd className="mt-1.5 leading-relaxed">{p.stack.join(", ")}</dd>
-          </div>
+          {p.stack.length > 0 && (
+            <div>
+              <dt className="meta text-muted">Stack</dt>
+              <dd className="mt-1.5 leading-relaxed">{p.stack.join(", ")}</dd>
+            </div>
+          )}
         </dl>
       </header>
 
-      {p.image && (
-        <div className="mb-12 overflow-hidden rounded-xl border border-line">
-          <Image
-            src={p.image}
-            alt={`${p.title} interface`}
-            width={1600}
-            height={1000}
-            className="h-auto w-full"
+      {p.shot && (
+        <div className="mb-12">
+          <BrowserShot
+            src={p.shot}
+            domain={p.links[0]?.label ?? ""}
+            alt={`${p.title} live site`}
             priority
+            sizes="(min-width: 1024px) 960px, 100vw"
           />
         </div>
       )}
@@ -94,13 +113,23 @@ export default async function CaseStudy({ params }: Params) {
         </Block>
       )}
 
-      <Block title="Problem">
-        <p className="max-w-2xl text-lg leading-relaxed">{p.problem}</p>
+      {p.problem && (
+        <Block title="Problem">
+          <p className="max-w-2xl text-lg leading-relaxed">{p.problem}</p>
+        </Block>
+      )}
+
+      <Block title="What I built">
+        <ul className="max-w-2xl list-disc space-y-2.5 pl-5 leading-relaxed marker:text-muted">
+          {p.built.map((b) => (
+            <li key={b}>{b}</li>
+          ))}
+        </ul>
       </Block>
 
-      {p.diagram && (
-        <Block title="Architecture">
-          <ArchDiagram project={p} />
+      {p.flow && (
+        <Block title="How it works">
+          <Flow steps={p.flow} />
         </Block>
       )}
 
@@ -120,26 +149,51 @@ export default async function CaseStudy({ params }: Params) {
         </Block>
       )}
 
-      {p.retrospective && (
-        <Block title="Looking back">
-          <p className="max-w-2xl leading-relaxed">{p.retrospective}</p>
+      {p.family && (
+        <Block title="Also on this platform">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            {p.family.map((f) => (
+              <a
+                key={f.href}
+                href={f.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block rounded-xl border border-line p-4 transition-colors hover:border-line-strong"
+              >
+                <BrowserShot src={f.shot} domain={new URL(f.href).hostname} alt={`${f.title} live site`} />
+                <div className="mt-4 flex items-center gap-3">
+                  <Logo src={f.logo} alt="" size={36} />
+                  <div>
+                    <p className="font-semibold">
+                      {f.title} <span aria-hidden="true" className="text-muted">↗</span>
+                    </p>
+                    <p className="text-sm text-muted">{f.line}</p>
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
         </Block>
       )}
 
-      <Block title="Outcome">
-        <p className="max-w-2xl text-lg leading-relaxed">{p.outcome}</p>
-      </Block>
+      {p.outcome && (
+        <Block title="Outcome">
+          <p className="max-w-2xl text-lg leading-relaxed">{p.outcome}</p>
+        </Block>
+      )}
 
       <nav aria-label="Next case study" className="border-t border-line py-12">
-        <Link href={`/work/${next.slug}`} className="group block">
-          <span className="meta text-muted">Next project</span>
-          <span className="mt-2 flex items-baseline gap-3 text-2xl font-semibold tracking-tight md:text-3xl">
-            {next.title}
-            <span aria-hidden="true" className="text-accent transition-transform group-hover:translate-x-1">
-              →
+        <Link href={`/work/${next.slug}`} className="group flex items-center gap-4">
+          <Logo src={next.logo} alt="" dark={next.logoDark} size={44} />
+          <span>
+            <span className="meta block text-muted">Next project</span>
+            <span className="flex items-baseline gap-2 text-2xl font-semibold tracking-tight">
+              {next.title}
+              <span aria-hidden="true" className="text-accent transition-transform group-hover:translate-x-1">
+                →
+              </span>
             </span>
           </span>
-          <span className="mt-1 block text-muted">{next.line}</span>
         </Link>
       </nav>
     </article>

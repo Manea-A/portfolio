@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "Manea Abdullah, Systems Architect & Engineering Lead";
+export const alt = "Manea Abdullah, Senior Software Engineer & Software Architect";
 
 const font = (file: string) =>
   readFile(join(process.cwd(), "node_modules/geist/dist/fonts", file));
@@ -39,7 +39,7 @@ export default async function OpenGraphImage() {
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ fontSize: 92, fontWeight: 600, letterSpacing: -3 }}>Manea Abdullah</div>
           <div style={{ marginTop: 12, fontSize: 40, color: muted, fontFamily: "GeistRegular" }}>
-            Systems Architect &amp; Engineering Lead
+            Senior Software Engineer · Software Architect
           </div>
         </div>
         <div
@@ -55,6 +55,7 @@ export default async function OpenGraphImage() {
         >
           <span>Multi-tenant SaaS</span>
           <span>Real-time systems</span>
+          <span>Marketplaces</span>
           <span>AI in operations</span>
         </div>
       </div>

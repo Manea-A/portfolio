@@ -4,6 +4,7 @@ import { CV } from "@/lib/site";
 const nav = [
   { href: "/#work", label: "Work", mobile: true },
   { href: "/#experience", label: "Experience", mobile: false },
+  { href: "/#skills", label: "Skills", mobile: false },
   { href: "/#about", label: "About", mobile: false },
   { href: "/#contact", label: "Contact", mobile: true },
 ];
