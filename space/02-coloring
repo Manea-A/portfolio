@@ -1,0 +1,27 @@
+CONTEXT
+My site's visual signature is the iridescent ring nav button already built in the codebase (the prismatic conic-gradient ring component). Its look — spectral colors glowing like light refracted through a prism, with soft photographic bloom — is the color reference for the ENTIRE site. Right now the rest of the page uses color that clashes with it: the hero name gradient, the colored background streak lines, and the colored stat numbers all look like they came from different palettes. Your job: unify every colored element on the site into ONE professional prismatic palette so the whole page reads as a single high-quality piece, not decorated parts.
+
+THE PALETTE — ONE DEFINITION, USED EVERYWHERE
+1. Define a single spectral palette in :root as an ordered set of stops, in TRUE SPECTRAL ORDER (this is what makes prismatic color look professional instead of ugly):
+   --spec-1: warm amber → --spec-2: orange-red → --spec-3: magenta → --spec-4: violet → --spec-5: blue → --spec-6: cyan.
+   Tuning: high luminosity, medium-high saturation, all stops equal perceived brightness (verify in OKLCH — no stop may look darker or dirtier than its neighbors). Target the look of white light split by a prism: clean, luminous, expensive.
+2. HARD RULE: no color anywhere on the site may exist outside this palette. Every gradient, glow, streak, underline, ring, and tinted number must sample these stops IN ORDER — never shuffled. Shuffled spectral stops are exactly what makes rainbow gradients look cheap.
+3. Color is always applied AS LIGHT, never as paint: every colored element gets a subtle bloom (a blurred duplicate underneath at low opacity). Flat colored fills are forbidden.
+4. Rebuild the existing ring button's gradient from these same variables so it and the site share one source of truth.
+
+FIX THE CURRENT OFFENDERS (visible on the live hero)
+1. Name gradient ("Manea Abdullah"): rebuild it. First name stays warm white. The second word sweeps through the palette in spectral order with white blended between stops (white → cyan → blue → violet → magenta → orange → amber-white) so it reads as light refracting across the letters. Animate the gradient position VERY slowly (20s+ loop) so it shimmers like the ring button. Add the soft bloom layer behind the text.
+2. Stat numbers (3+ / 5 / 2): currently mixed unrelated colors. Make all of them white, each with a faint under-glow sampled from consecutive palette stops (amber, cyan, violet) at low opacity — tinted by lighting, not colored text.
+3. Background streak/light lines: recolor every one of them from the palette in spectral order along their length, drop opacity so they read as light trails in the dark, and give them slow drift consistent with the ambient background system.
+4. Buttons and badges ("Available for select work", CTAs, CV): keep monochrome glass. The iridescent ring button must remain the single most saturated element on the page — nothing else may out-color it.
+
+GLOBAL HARMONY PASS
+1. Audit every page (home + all case studies) and list every element that currently uses color. Migrate 100% of them to the palette variables. Delete any hardcoded hex/rgb color that isn't from the palette or the neutral scale (#090909, #111, white, zinc).
+2. Enforce this saturation hierarchy — this is what "professional" means here:
+   - Level 1 (full saturation): ONLY the nav ring button.
+   - Level 2 (~60%): name gradient, key hover states.
+   - Level 3 (~25%): streaks, stat under-glows, glass edges, link underlines.
+   - Level 4 (~8%): ambient background blobs.
+   If two elements at different levels visually compete, dim the lower-priority one.
+3. Keep all existing animation timing; only colors change. The existing slow global hue drift must shift this palette as ONE unit so everything changes together and stays matched forever.
+
