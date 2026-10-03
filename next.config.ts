@@ -12,6 +12,8 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       { source: "/work", destination: "/#work", permanent: true },
+      // MYCES projects now live on one page
+      { source: "/work/:slug(emars|agrofarm|ems)", destination: "/work/myces", permanent: true },
     ];
   },
 };

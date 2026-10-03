@@ -80,6 +80,106 @@ body {
   letter-spacing: 0;
 }
 
+/* ── Live-site screenshots that scroll on hover ───────────────
+   The frame is a size container, so 100cqh is its own height and the
+   image can travel exactly to its bottom edge. */
+.shot {
+  overflow: hidden;
+  container-type: size;
+}
+.shot-img {
+  position: absolute;
+  inset: 0 0 auto 0;
+  width: 100%;
+  height: auto;
+  transition: transform 1.1s cubic-bezier(0.2, 0.7, 0.2, 1);
+  will-change: transform;
+}
+.group:hover .shot-img,
+.shot:hover .shot-img {
+  transform: translateY(calc(-100% + 100cqh));
+  transition: transform 9s cubic-bezier(0.45, 0, 0.55, 1);
+}
+
+/* ── Entrance + scroll reveal ─────────────────────────────────
+   Pure CSS. Without scroll-timeline support (or with reduced motion)
+   content is simply there — nothing ever waits on JavaScript. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+.rise {
+  animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.rise-1 { animation-delay: 0.05s; }
+.rise-2 { animation-delay: 0.12s; }
+.rise-3 { animation-delay: 0.2s; }
+.rise-4 { animation-delay: 0.28s; }
+.rise-5 { animation-delay: 0.36s; }
+
+@supports (animation-timeline: view()) {
+  .reveal {
+    animation: rise linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 35%;
+  }
+}
+
+/* ── Logo marquee ─────────────────────────────────────────────── */
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee {
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 40s linear infinite;
+}
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+/* ── Hero backdrop: faint grid fading out from the top ───────── */
+.hero-grid {
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, #000 30%, transparent 75%);
+}
+.hero-glow {
+  background: radial-gradient(
+    ellipse 60% 50% at 70% 10%,
+    color-mix(in srgb, var(--accent) 14%, transparent),
+    transparent 70%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise,
+  .reveal {
+    animation: none;
+  }
+  .marquee-track {
+    animation: none;
+    flex-wrap: wrap;
+    width: auto;
+  }
+  .marquee-dup {
+    display: none;
+  }
+  .group:hover .shot-img,
+  .shot:hover .shot-img {
+    transform: none;
+  }
+}
+
 /* inline text link: quiet underline that firms up on hover */
 .link {
   text-decoration: underline;

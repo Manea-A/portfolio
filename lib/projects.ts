@@ -3,12 +3,25 @@
  * projects' own public sites — edit wording freely, but never add a
  * metric that can't be backed up.
  *
- * Assets: logos in public/projects/logos/, screenshots (1440×900 webp)
- * in public/projects/shots/.
+ * Assets: logos in public/projects/logos/, full-page screenshots
+ * (1200px wide webp, up to 3500px tall) in public/projects/shots/.
+ * A project or sub-product without `shot` shows a designed placeholder.
  */
 
 export type Metric = { value: string; label: string };
 export type Link = { label: string; href: string };
+
+/** a product inside a group (ISOPluss family, MYCES platforms) */
+export type SubProduct = {
+  title: string;
+  line: string;
+  logo: string;
+  shot?: string;
+  href?: string;
+  role?: string;
+  year?: string;
+  metrics?: Metric[];
+};
 
 export type Project = {
   slug: string;
@@ -36,11 +49,14 @@ export type Project = {
   metrics: Metric[];
   decisions: { title: string; body: string }[];
   outcome?: string;
-  /** other products running on the same platform */
-  family?: { title: string; line: string; logo: string; shot: string; href: string }[];
+  /** related products shown on the case study */
+  family?: SubProduct[];
+  familyTitle?: string;
   featured: boolean;
 };
 
+/* Order matters: the grid is two columns, so neighbours should not share
+   a dominant colour (ISOPluss and HealthWatch are both blue). */
 export const projects: Project[] = [
   {
     slug: "isopluss",
@@ -64,7 +80,7 @@ export const projects: Project[] = [
       "Own cloud infrastructure, CI/CD, DevOps automation, and production data security.",
     ],
     flow: ["Standard configuration", "Schema engine", "Workflows & documents", "Audits & corrective actions", "Per-tenant analytics"],
-    stack: ["NestJS", "Next.js", "PostgreSQL", "Redis", "TypeORM", "JWT / RBAC", "OpenAPI", "CI/CD"],
+    stack: ["NestJS", "Next.js", "TypeScript", "PostgreSQL", "Redis", "TypeORM", "JWT", "OpenAPI", "CI/CD"],
     metrics: [
       { value: "3", label: "Live products on the platform" },
       { value: "27", label: "Working modules" },
@@ -86,6 +102,7 @@ export const projects: Project[] = [
     ],
     outcome:
       "In production for food manufacturers, processors, and warehouses in the Gulf, and running as two further products for HACCP and ISO 9001 quality management.",
+    familyTitle: "Also on this platform",
     family: [
       {
         title: "HaccPlus",
@@ -105,48 +122,27 @@ export const projects: Project[] = [
     featured: true,
   },
   {
-    slug: "healthwatch",
-    title: "HealthWatch",
-    line: "Real-time telehealth platform streaming smartwatch vitals into hospital workflows.",
-    org: "Me'Kaaz, Riyadh",
-    year: "Jul 2025 – Jan 2026",
-    role: "Senior Software Engineer",
+    slug: "covita",
+    title: "COVITA",
+    line: "Saudi coffee marketplace connecting importers, roasters, cafés, and coffee lovers.",
+    org: "COVITA, Riyadh",
+    year: "Feb 2026 – present",
+    role: "Lead architect & developer (contract)",
     kind: "product",
-    logo: "/projects/logos/mekaaz.png",
-    shot: "/projects/shots/healthwatch.webp",
-    links: [{ label: "mekaaz.com", href: "https://mekaaz.com/" }],
+    logo: "/projects/logos/covita.svg",
+    shot: "/projects/shots/covita.webp",
+    links: [{ label: "covita-app.vercel.app", href: "https://covita-app.vercel.app/landing/" }],
     summary:
-      "A real-time ecosystem connecting BLE smartwatches, patient apps, and a multi-tenant hospital portal for Me'Kaaz, a Saudi chronic-care company, built to NCA and MOH requirements.",
-    problem:
-      "Hospitals needed to monitor patient vitals remotely in real time and act on them inside their existing clinical workflow.",
+      "A verified B2B and B2C coffee marketplace, from farm to cup: green-coffee importers, roasters, cafés, and consumers on one platform with a verified catalogue, requests for quotes, samples, compliant e-invoices, and secure payment.",
     built: [
-      "Architected and delivered the platform connecting patient applications with hospital systems.",
-      "Engineered the real-time cloud infrastructure behind the vitals pipeline.",
-      "Delivered hospital dashboards, ward heatmaps, automated clinical alerts, and branded deployment workflows.",
-      "Coordinated design, engineering, and QA through regional rollout, knowledge transfer, and mentoring.",
+      "Led end-to-end architecture and development.",
+      "Built vendor onboarding, product catalogues, order management, and payment integration across web and mobile.",
+      "Designed the platform for wholesale, retail, and subscription business models.",
     ],
-    flow: ["BLE smartwatch", "Patient app", "Real-time ingest", "Clinical core", "Hospital portal & alerts"],
-    stack: ["NestJS", "PostgreSQL", "Redis", "Next.js", "WebSockets", "BLE", "AWS"],
-    metrics: [
-      { value: "<3s", label: "Vitals latency, watch to ward" },
-      { value: "99.9%", label: "Uptime" },
-    ],
-    decisions: [
-      {
-        title: "Event-driven ingestion instead of polling",
-        body: "Clinical alerts depend on low, predictable latency, so vitals stream through an event pipeline rather than scheduled pulls.",
-      },
-      {
-        title: "Multi-tenancy from the first release",
-        body: "Each hospital is an isolated tenant with its own branding, wards, and roles, which turned onboarding a hospital into configuration instead of integration work.",
-      },
-      {
-        title: "Compliance designed into the schema",
-        body: "NCA and MOH requirements shaped data residency, doctor–patient access, and audit trails at the data-model level.",
-      },
-    ],
-    outcome:
-      "Live monitoring with automated clinical alerts and ward heatmaps, rolled out regionally with hospital deployment workflows.",
+    flow: ["Vendors & roasters", "Verified catalogue", "Quotes & orders", "Payments & e-invoices", "Buyers"],
+    stack: ["Next.js", "NestJS", "PostgreSQL"],
+    metrics: [],
+    decisions: [],
     featured: true,
   },
   {
@@ -186,27 +182,48 @@ export const projects: Project[] = [
     featured: true,
   },
   {
-    slug: "covita",
-    title: "COVITA",
-    line: "Saudi coffee marketplace connecting importers, roasters, cafés, and coffee lovers.",
-    org: "COVITA, Riyadh",
-    year: "Feb 2026 – present",
-    role: "Lead architect & developer (contract)",
+    slug: "healthwatch",
+    title: "HealthWatch",
+    line: "Real-time telehealth platform streaming smartwatch vitals into hospital workflows.",
+    org: "Me'Kaaz, Riyadh",
+    year: "Jul 2025 – Jan 2026",
+    role: "Senior Software Engineer",
     kind: "product",
-    logo: "/projects/logos/covita.svg",
-    shot: "/projects/shots/covita.webp",
-    links: [{ label: "covita-app.vercel.app", href: "https://covita-app.vercel.app/landing/" }],
+    logo: "/projects/logos/mekaaz.png",
+    shot: "/projects/shots/healthwatch.webp",
+    links: [{ label: "mekaaz.com", href: "https://mekaaz.com/" }],
     summary:
-      "A verified B2B and B2C coffee marketplace, from farm to cup: green-coffee importers, roasters, cafés, and consumers on one platform with a verified catalogue, requests for quotes, samples, compliant e-invoices, and secure payment.",
+      "A real-time ecosystem connecting BLE smartwatches, patient apps, and a multi-tenant hospital portal for Me'Kaaz, a Saudi chronic-care company, built to NCA and MOH requirements.",
+    problem:
+      "Hospitals needed to monitor patient vitals remotely in real time and act on them inside their existing clinical workflow.",
     built: [
-      "Led end-to-end architecture and development.",
-      "Built vendor onboarding, product catalogues, order management, and payment integration across web and mobile.",
-      "Designed the platform for wholesale, retail, and subscription business models.",
+      "Architected and delivered the platform connecting patient applications with hospital systems.",
+      "Engineered the real-time cloud infrastructure behind the vitals pipeline.",
+      "Delivered hospital dashboards, ward heatmaps, automated clinical alerts, and branded deployment workflows.",
+      "Coordinated design, engineering, and QA through regional rollout, knowledge transfer, and mentoring.",
     ],
-    flow: ["Vendors & roasters", "Verified catalogue", "Quotes & orders", "Payments & e-invoices", "Buyers"],
-    stack: ["Next.js", "NestJS", "PostgreSQL"],
-    metrics: [],
-    decisions: [],
+    flow: ["BLE smartwatch", "Patient app", "Real-time ingest", "Clinical core", "Hospital portal & alerts"],
+    stack: ["NestJS", "PostgreSQL", "Redis", "Next.js", "WebSockets", "Bluetooth", "AWS"],
+    metrics: [
+      { value: "<3s", label: "Vitals latency, watch to ward" },
+      { value: "99.9%", label: "Uptime" },
+    ],
+    decisions: [
+      {
+        title: "Event-driven ingestion instead of polling",
+        body: "Clinical alerts depend on low, predictable latency, so vitals stream through an event pipeline rather than scheduled pulls.",
+      },
+      {
+        title: "Multi-tenancy from the first release",
+        body: "Each hospital is an isolated tenant with its own branding, wards, and roles, which turned onboarding a hospital into configuration instead of integration work.",
+      },
+      {
+        title: "Compliance designed into the schema",
+        body: "NCA and MOH requirements shaped data residency, doctor–patient access, and audit trails at the data-model level.",
+      },
+    ],
+    outcome:
+      "Live monitoring with automated clinical alerts and ward heatmaps, rolled out regionally with hospital deployment workflows.",
     featured: true,
   },
   {
@@ -230,77 +247,70 @@ export const projects: Project[] = [
     featured: true,
   },
   {
-    slug: "emars",
-    title: "EMARS",
-    line: "Energy monitoring, analysis, and reporting SaaS serving 100+ enterprise facilities.",
-    org: "MYCES, Malaysia",
-    year: "Dec 2023 – 2024",
-    role: "Software Engineer",
-    kind: "product",
-    logo: "/projects/logos/emars.png",
-    shot: "/projects/shots/emars.webp",
-    links: [{ label: "myces-emars.com", href: "https://www.myces-emars.com/" }],
-    summary:
-      "EMARS is MYCES's energy monitoring, analysis, and reporting system for enterprise facilities.",
-    built: [
-      "Built upgrades and features across the platform.",
-      "Delivered threshold-based alerting and treemap analytics.",
-      "Shipped responsive web and mobile interfaces and strengthened security with role-based access.",
-    ],
-    stack: ["Vue.js", "NestJS", "MySQL", "D3.js"],
-    metrics: [
-      { value: "100+", label: "Enterprise facilities" },
-      { value: "17%", label: "Reported cut in energy waste" },
-      { value: "22%", label: "Higher user engagement" },
-    ],
-    decisions: [],
-    outcome:
-      "Alerting and analytics contributed to a reported 17% reduction in energy waste across client facilities.",
-    featured: true,
-  },
-  {
-    slug: "agrofarm",
-    title: "AgroFarm",
-    line: "Farm-monitoring platform. Gold Medal, Johor Agriculture Department Innovation Competition 2024.",
-    org: "MYCES, Malaysia",
-    year: "2024",
-    role: "Software Engineering Lead",
-    kind: "product",
-    logo: "/projects/logos/myces.png",
-    links: [],
-    summary:
-      "A farm-monitoring platform covering real-time data, resource planning, automated pricing tools, and reporting.",
-    built: [
-      "Took the platform from requirements to MVP.",
-      "Built real-time monitoring, resource planning, pricing tools, and reporting.",
-    ],
-    stack: ["Vue.js", "NestJS", "MySQL", "D3.js"],
-    metrics: [{ value: "Gold", label: "Johor Innovation Competition 2024" }],
-    decisions: [],
-    outcome: "Won the Gold Medal at the Johor Agriculture Department Innovation Competition 2024.",
-    featured: false,
-  },
-  {
-    slug: "ems",
-    title: "EMS & Dam Monitoring",
-    line: "Enterprise energy-management and dam-safety monitoring platforms for MYCES Group.",
-    org: "MYCES, Malaysia",
-    year: "2024",
-    role: "Software Engineering Lead",
+    slug: "myces",
+    title: "MYCES platforms",
+    line: "Energy, facility, farm, and dam-safety platforms for MYCES Group, from requirements to production.",
+    org: "MYCES SDN BHD, Malaysia",
+    year: "Oct 2023 – Dec 2024",
+    role: "Software Engineer → Software Engineering Lead",
     kind: "product",
     logo: "/projects/logos/myces.png",
     shot: "/projects/shots/ems.webp",
-    links: [{ label: "live.mycesgroup.com", href: "https://www.live.mycesgroup.com/" }],
+    links: [{ label: "mycesgroup.com", href: "https://www.live.mycesgroup.com/" }],
     summary:
-      "Enterprise monitoring platforms for the energy and dam-safety sectors, delivered from requirements through MVP.",
+      "MYCES Group is a Malaysian energy-management and engineering company. I joined as an intern, became a software engineer on its energy-monitoring SaaS, and then led delivery of new platforms across energy, facilities, agriculture, and dam safety.",
     built: [
-      "Delivered both platforms from requirements through MVP using reusable architecture and Agile practices.",
+      "Built features for EMARS, the energy-monitoring SaaS serving 100+ enterprise facilities: threshold-based alerting, treemap analytics, responsive web and mobile interfaces, and role-based access.",
+      "As Software Engineering Lead, shipped three major platforms from requirements through MVP using Agile practices and reusable components.",
+      "Cut delivery timelines by 20% through reusable architecture and component practices.",
       "Authored the SRS, SDD, and STR/STD documentation and mentored junior developers.",
     ],
-    stack: [],
-    metrics: [{ value: "20%", label: "Shorter delivery timelines across MYCES platforms" }],
+    stack: ["Vue.js", "Quasar", "NestJS", "MySQL", "D3.js"],
+    metrics: [
+      { value: "100+", label: "Facilities on EMARS" },
+      { value: "17%", label: "Reported cut in energy waste" },
+      { value: "22%", label: "Higher user engagement" },
+      { value: "20%", label: "Shorter delivery timelines" },
+    ],
     decisions: [],
-    featured: false,
+    familyTitle: "Platforms",
+    family: [
+      {
+        title: "EMARS",
+        line: "Energy monitoring, analysis, and reporting SaaS for 100+ enterprise facilities.",
+        logo: "/projects/logos/emars.png",
+        shot: "/projects/shots/emars.webp",
+        href: "https://www.myces-emars.com/",
+        role: "Software Engineer",
+        year: "Dec 2023 – Aug 2024",
+        metrics: [
+          { value: "17%", label: "Less energy waste" },
+          { value: "22%", label: "More engagement" },
+        ],
+      },
+      {
+        title: "FMS",
+        line: "Facility management system: assets, work orders, preventive maintenance, and reporting.",
+        logo: "/projects/logos/myces.png",
+        shot: "/projects/shots/fms.webp",
+        href: "https://www.myces-fms.com/#/home",
+        year: "2024",
+      },
+      {
+        title: "AgroFarm",
+        line: "Farm monitoring with real-time data, resource planning, pricing tools, and reporting.",
+        logo: "/projects/logos/myces.png",
+        year: "2024",
+        metrics: [{ value: "Gold", label: "Johor Innovation Competition 2024" }],
+      },
+      {
+        title: "Dam Monitoring & EMS",
+        line: "Enterprise monitoring platforms for dam safety and energy management.",
+        logo: "/projects/logos/myces.png",
+        year: "2024",
+      },
+    ],
+    featured: true,
   },
   {
     slug: "saudihlm",
@@ -330,8 +340,8 @@ export const projects: Project[] = [
     role: "Designed and built the website",
     kind: "client-site",
     logo: "/projects/logos/era.png",
-    logoWide: true,
     logoDark: true,
+    logoWide: true,
     shot: "/projects/shots/era.webp",
     links: [{ label: "era-ventures.sa", href: "https://www.era-ventures.sa/" }],
     summary: "Bilingual website for ERA Ventures, a private workspace and business ecosystem for founders and startups.",

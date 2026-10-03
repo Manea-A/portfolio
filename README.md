@@ -8,11 +8,13 @@ libraries; all content is server-rendered and readable without JavaScript.
 
 | Path | What |
 |---|---|
-| `app/page.tsx` | Home: intro, selected work, experience, expertise, about, contact |
+| `app/page.tsx` | Home: hero showcase, work, experience, skills, about, contact |
 | `app/work/[slug]/page.tsx` | One static case-study page per product |
 | `lib/projects.ts` | All project content, metrics, links, logos, and screenshots |
 | `lib/site.ts` | Site URL, email, and profile links |
-| `components/ProjectVisuals.tsx` | Logo tiles, browser-framed screenshots, and the flow strip |
+| `components/ProjectVisuals.tsx` | Logo tiles, hover-to-scroll screenshots, and the flow strip |
+| `components/HeroShowcase.tsx` | Tilting stack of live products in the hero (Motion) |
+| `components/TechIcons.tsx` | Brand logos for the stack (simple-icons) |
 
 ## Design
 
@@ -22,7 +24,7 @@ WCAG AA contrast.
 
 ## Logos and screenshots
 
-Logos live in `public/projects/logos/`, live-site screenshots (1440×900 webp)
+Logos live in `public/projects/logos/`, full-page live-site screenshots (1200px wide webp)
 in `public/projects/shots/`. Reference them from the project in
 `lib/projects.ts` (`logo`, `shot`).
 

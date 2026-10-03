@@ -29,7 +29,7 @@ export default function Header() {
               <a
                 href={CV}
                 download
-                className="rounded-md border border-line-strong px-3 py-1.5 font-medium transition-colors hover:bg-surface"
+                className="rounded-full bg-fg px-4 py-1.5 font-medium text-bg transition-opacity hover:opacity-85"
               >
                 CV
               </a>
