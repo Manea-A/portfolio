@@ -1,7 +1,8 @@
 import Link from "next/link";
 import CopyEmail from "@/components/CopyEmail";
 import HeroShowcase from "@/components/HeroShowcase";
-import HeroWaves from "@/components/HeroWaves";
+import LiquidTitle from "@/components/LiquidTitle";
+import RotatingWords from "@/components/RotatingWords";
 import { Logo, ScrollShot } from "@/components/ProjectVisuals";
 import { StackChips, StackIcons } from "@/components/TechIcons";
 import { bySlug, projects, type Project } from "@/lib/projects";
@@ -174,8 +175,10 @@ export default function Home() {
       {/* ── Hero ──────────────────────────────────────────────── */}
       <section className="relative overflow-hidden">
         <div aria-hidden="true" className="hero-grid absolute inset-0" />
-        <div aria-hidden="true" className="hero-glow hero-glow-drift absolute inset-0" />
-        <HeroWaves />
+        <div aria-hidden="true" className="hero-glow absolute inset-0" />
+        <div aria-hidden="true" className="absolute inset-0 overflow-hidden">
+          <div className="grain" />
+        </div>
         <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-5 pb-20 pt-14 md:px-8 md:pt-20 lg:grid-cols-[1.05fr_1fr] lg:pb-28">
           <div>
             <p className="rise rise-1 meta inline-flex items-center gap-2 rounded-full border border-line bg-bg/70 px-3 py-1.5 text-muted backdrop-blur">
@@ -185,13 +188,28 @@ export default function Home() {
               </span>
               Available for select work · Riyadh
             </p>
-            <h1 className="rise rise-2 mt-7 text-5xl font-semibold tracking-[-0.035em] md:text-7xl">
-              Manea
-              <br />
-              Abdullah
-            </h1>
-            <p className="rise rise-3 mt-5 text-lg text-muted">
-              Senior Software Engineer · Technical Lead · Software Architect
+            <div className="rise rise-2 mt-6">
+              <LiquidTitle
+                lines={["Manea", "Abdullah"]}
+                className="font-serif text-[4.5rem] leading-[0.92] tracking-[-0.02em] md:text-[7.5rem]"
+              />
+            </div>
+            <p className="rise rise-3 mt-6 text-xl md:text-2xl">
+              <span className="text-muted">I build </span>
+              <span className="font-serif text-[1.15em] italic">
+                <RotatingWords
+                  words={[
+                    "multi-tenant SaaS.",
+                    "Arabic-first AI.",
+                    "real-time healthcare.",
+                    "compliance platforms.",
+                    "marketplaces.",
+                  ]}
+                />
+              </span>
+            </p>
+            <p className="rise rise-3 meta mt-3 text-muted">
+              {"{"} Senior Software Engineer · Technical Lead · Software Architect {"}"}
             </p>
             <p className="rise rise-4 mt-6 max-w-xl text-lg leading-relaxed">
               I design, build, and ship production software end to end:
@@ -262,7 +280,7 @@ export default function Home() {
       {/* ── Work ──────────────────────────────────────────────── */}
       <Section
         id="work"
-        index="01 — Work"
+        index="{ 01 } Work"
         title="Selected work"
         intro="Products I architected and built. Hover a preview to scroll through the real app."
       >
@@ -314,7 +332,7 @@ export default function Home() {
       </Section>
 
       {/* ── Experience ────────────────────────────────────────── */}
-      <Section id="experience" index="02 — Experience" title="Where I've worked">
+      <Section id="experience" index="{ 02 } Experience" title="Where I've worked">
         <ol className="space-y-4">
           {experience.map((e) => (
             <li key={`${e.role}-${e.org}`} className="reveal grid gap-2 md:grid-cols-[11rem_1fr] md:gap-0">
@@ -347,7 +365,7 @@ export default function Home() {
       </Section>
 
       {/* ── Skills ────────────────────────────────────────────── */}
-      <Section id="skills" index="03 — Skills" title="Tools I use in production">
+      <Section id="skills" index="{ 03 } Skills" title="Tools I use in production">
         <div className="grid gap-x-12 gap-y-10 md:grid-cols-2">
           {skills.map((s) => (
             <div key={s.area} className="reveal">
@@ -359,7 +377,7 @@ export default function Home() {
       </Section>
 
       {/* ── About ─────────────────────────────────────────────── */}
-      <Section id="about" index="04 — About" title="About me">
+      <Section id="about" index="{ 04 } About" title="About me">
         <div className="grid gap-14 lg:grid-cols-[1.2fr_1fr]">
           <div className="reveal space-y-5 text-lg leading-relaxed">
             <p>
@@ -392,7 +410,7 @@ export default function Home() {
           <div className="reveal relative overflow-hidden rounded-3xl border border-line bg-surface px-6 py-14 md:px-14 md:py-20">
             <div aria-hidden="true" className="hero-glow absolute inset-0" />
             <div className="relative">
-              <p className="meta text-muted">05 — Contact</p>
+              <p className="meta text-muted">{"{ 05 } Contact"}</p>
               <h2 id="contact-title" className="mt-3 max-w-2xl text-4xl font-semibold tracking-[-0.03em] md:text-6xl">
                 Let&apos;s build something that lasts.
               </h2>

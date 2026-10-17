@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "@fontsource/instrument-serif/latin-400.css";
+@import "@fontsource/instrument-serif/latin-400-italic.css";
 
 /* ── Design tokens ─────────────────────────────────────────────
    Neutral, editorial, one accent. Light by default, dark follows
@@ -41,6 +43,7 @@
   --color-ok: var(--ok);
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-serif: "Instrument Serif", ui-serif, Georgia, serif;
 }
 
 html {
@@ -161,27 +164,60 @@ body {
   );
 }
 
-/* flowing lines (HeroWaves): soft at the edges, quiet behind the headline */
-.hero-waves {
-  mask-image:
-    linear-gradient(180deg, transparent, #000 25%, #000 75%, transparent),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.35), #000 55%);
-  mask-composite: intersect;
+/* ── Hero title (LiquidTitle) ──────────────────────────────────
+   Once the WebGL copy is drawn, the DOM text goes transparent but stays
+   selectable and readable by assistive tech. */
+.liquid-title[data-gl="on"] {
+  color: transparent;
+}
+.liquid-title[data-gl="on"]::selection,
+.liquid-title[data-gl="on"] *::selection {
+  color: var(--fg);
 }
 
-/* the accent glow drifts slowly, like light on water */
-@keyframes glow-drift {
-  50% {
-    transform: translate(-6%, 8%) scale(1.15);
-    opacity: 0.75;
-  }
+/* ── Rotating phrase ─────────────────────────────────────────── */
+.rotating-word {
+  transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.5s ease;
 }
-.hero-glow-drift {
-  animation: glow-drift 18s ease-in-out infinite;
+.rotating-word[data-state="wait"] {
+  opacity: 0;
+  transform: translateY(0.6em);
+}
+.rotating-word[data-state="out"] {
+  opacity: 0;
+  transform: translateY(-0.6em);
+}
+
+/* ── Film grain over the hero ────────────────────────────────────
+   One noise tile, jumped to a new offset eight times a second like
+   projected film. */
+@keyframes grain {
+  0% { transform: translate(0, 0); }
+  12.5% { transform: translate(-8%, 6%); }
+  25% { transform: translate(5%, -10%); }
+  37.5% { transform: translate(-12%, -4%); }
+  50% { transform: translate(9%, 11%); }
+  62.5% { transform: translate(-3%, 13%); }
+  75% { transform: translate(12%, -7%); }
+  87.5% { transform: translate(-10%, 9%); }
+}
+.grain {
+  position: absolute;
+  inset: -50%;
+  pointer-events: none;
+  opacity: 0.09;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1.4 -0.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain 1s steps(1) infinite;
+}
+@media (prefers-color-scheme: dark) {
+  .grain {
+    opacity: 0.14;
+    filter: invert(1);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-glow-drift {
+  .grain {
     animation: none;
   }
   .rise,
