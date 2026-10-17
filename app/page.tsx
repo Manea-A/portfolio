@@ -12,7 +12,7 @@ const featured = projects.filter((p) => p.featured);
 const sites = projects.filter((p) => p.kind === "client-site");
 
 /* hero stack, back to front */
-const showcase = ["covita", "isopluss", "aip"].map((slug) => {
+const showcase = ["covita", "gavelmarket", "isopluss"].map((slug) => {
   const p = bySlug(slug)!;
   return { slug, title: p.title, shot: p.shot!, domain: p.links[0]?.label };
 });
