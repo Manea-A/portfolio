@@ -37,6 +37,8 @@ export type Project = {
   logoDark?: boolean;
   /** wordmark rather than a square icon */
   logoWide?: boolean;
+  /** full wordmark (name included), used in the live-products strip */
+  wordmark?: string;
   shot?: string;
   links: Link[];
   summary: string;
@@ -129,7 +131,8 @@ export const projects: Project[] = [
     year: "Feb 2026 – present",
     role: "Lead architect & developer (contract)",
     kind: "product",
-    logo: "/projects/logos/covita.svg",
+    logo: "/projects/logos/covita.png",
+    wordmark: "/projects/logos/covita-wordmark.png",
     shot: "/projects/shots/covita.webp",
     links: [{ label: "covita-app.vercel.app", href: "https://covita-app.vercel.app/landing/" }],
     summary:

@@ -18,10 +18,10 @@ const showcase = ["covita", "gavelmarket", "isopluss"].map((slug) => {
 
 /* every live product, for the logo marquee */
 const liveLogos = featured.flatMap((p) => [
-  { title: p.title, logo: p.logo, dark: p.logoDark },
+  { title: p.title, logo: p.logo, dark: p.logoDark, wordmark: p.wordmark },
   ...(p.family ?? [])
     .filter((f) => f.href && f.logo !== p.logo)
-    .map((f) => ({ title: f.title, logo: f.logo, dark: false })),
+    .map((f) => ({ title: f.title, logo: f.logo, dark: false, wordmark: undefined })),
 ]);
 
 const experience = [
@@ -30,8 +30,8 @@ const experience = [
     org: "AIP",
     logo: null,
     meta: "Riyadh · Full-time",
-    years: "Jan 2026 – now",
-    note: "Lead software architecture across enterprise and industrial systems, set cloud and engineering standards, and architect AI solutions (LLMs, agents, RAG) for ERP, MES, CMMS, and SCADA environments.",
+    years: "Jan – Oct 2026",
+    note: "Led software architecture across enterprise and industrial systems, set cloud and engineering standards, and architected AI solutions (LLMs, agents, RAG) for ERP, MES, CMMS, and SCADA environments.",
   },
   {
     role: "Lead Software Architect & Co-founder",
@@ -196,8 +196,8 @@ export default function Home() {
             <p className="rise rise-4 mt-6 max-w-xl text-lg leading-relaxed">
               I design, build, and ship production software end to end:
               multi-tenant SaaS, real-time telehealth, marketplaces, and AI for
-              industrial operations. Currently Software Engineering Lead at AIP
-              and Lead Software Architect at ISOPluss, which I co-founded.
+              industrial operations. Most recently Software Engineering Lead at
+              AIP; Lead Software Architect at ISOPluss, which I co-founded.
             </p>
             <div className="rise rise-5 mt-9 flex flex-wrap items-center gap-3">
               <Link
@@ -242,8 +242,15 @@ export default function Home() {
               >
                 {liveLogos.map((l) => (
                   <li key={l.title} className="flex items-center gap-3">
-                    <Logo src={l.logo} alt="" dark={l.dark} size={34} />
-                    <span className="whitespace-nowrap font-medium">{l.title}</span>
+                    {l.wordmark ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={l.wordmark} alt={l.title} height={34} className="h-[34px] w-auto rounded-md" />
+                    ) : (
+                      <>
+                        <Logo src={l.logo} alt="" dark={l.dark} size={34} />
+                        <span className="whitespace-nowrap font-medium">{l.title}</span>
+                      </>
+                    )}
                   </li>
                 ))}
               </ul>
