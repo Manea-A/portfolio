@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from "motion/react";
 
-type Card = { slug: string; title: string; shot: string; domain: string };
+type Card = { slug: string; title: string; shot: string; domain?: string };
 
 /*
  * Fanned layout: back, middle, front. Depth is real translateZ, not z-index —
@@ -66,7 +66,7 @@ export default function HeroShowcase({ cards }: { cards: Card[] }) {
                   <span className="h-2 w-2 rounded-full bg-[#ff5f57]/80" />
                   <span className="h-2 w-2 rounded-full bg-[#febc2e]/80" />
                   <span className="h-2 w-2 rounded-full bg-[#28c840]/80" />
-                  <span className="meta ml-2 text-[0.625rem] text-muted">{c.domain}</span>
+                  <span className="meta ml-2 text-[0.625rem] text-muted">{c.domain ?? c.title}</span>
                 </span>
                 <span className="relative block aspect-[16/10] overflow-hidden">
                   <Image

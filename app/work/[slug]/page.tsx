@@ -137,12 +137,14 @@ export default async function CaseStudy({ params }: Params) {
             <ScrollShot
               src={p.shot}
               domain={p.links[0]?.label}
-              alt={`${p.title} live site`}
+              alt={`${p.title} screenshot`}
               priority
               ratio="16 / 9"
               sizes="(min-width: 1152px) 1088px, 100vw"
             />
-            <p className="meta mt-3 text-center text-muted">Hover the preview to scroll through the live site</p>
+            <p className="meta mt-3 text-center text-muted">
+              Hover the preview to scroll through {p.links.length > 0 ? "the live site" : "the app"}
+            </p>
           </div>
         )}
 

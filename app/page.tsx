@@ -11,9 +11,9 @@ const featured = projects.filter((p) => p.featured);
 const sites = projects.filter((p) => p.kind === "client-site");
 
 /* hero stack, back to front */
-const showcase = ["covita", "gavelmarket", "isopluss"].map((slug) => {
+const showcase = ["covita", "isopluss", "aip"].map((slug) => {
   const p = bySlug(slug)!;
-  return { slug, title: p.title, shot: p.shot!, domain: p.links[0].label };
+  return { slug, title: p.title, shot: p.shot!, domain: p.links[0]?.label };
 });
 
 /* every live product, for the logo marquee */
@@ -28,7 +28,7 @@ const experience = [
   {
     role: "Software Engineering Lead",
     org: "AIP",
-    logo: null,
+    logo: "/projects/logos/aip.png",
     meta: "Riyadh · Full-time",
     years: "Jan – Oct 2026",
     note: "Led software architecture across enterprise and industrial systems, set cloud and engineering standards, and architected AI solutions (LLMs, agents, RAG) for ERP, MES, CMMS, and SCADA environments.",
@@ -264,7 +264,7 @@ export default function Home() {
         id="work"
         index="01 — Work"
         title="Selected work"
-        intro="Live products I architected and built. Hover a preview to scroll through the real site."
+        intro="Products I architected and built. Hover a preview to scroll through the real app."
       >
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {featured.map((p, i) => (
@@ -277,26 +277,39 @@ export default function Home() {
           <p className="mt-1 text-muted">Company sites I designed and built.</p>
         </div>
         <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
-          {sites.map((p) => (
-            <a
-              key={p.slug}
-              href={p.links[0].href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="reveal group block rounded-2xl border border-line p-3 transition-all duration-300 hover:-translate-y-1 hover:border-line-strong md:p-4"
-            >
-              <ScrollShot src={p.shot} domain={p.links[0].label} alt={`${p.title} website`} />
-              <div className="flex items-center gap-3 px-2 pb-1 pt-4">
-                <Logo src={p.logo} alt="" dark={p.logoDark} wide={p.logoWide} size={36} />
-                <div className="min-w-0">
-                  <p className="font-semibold">
-                    {p.title} <span aria-hidden="true" className="text-muted">↗</span>
-                  </p>
-                  <p className="text-sm text-muted">{p.line}</p>
+          {sites.map((p) => {
+            const link = p.links[0];
+            const body = (
+              <>
+                <ScrollShot src={p.shot} domain={link?.label} alt={`${p.title} website`} />
+                <div className="flex items-center gap-3 px-2 pb-1 pt-4">
+                  <Logo src={p.logo} alt="" dark={p.logoDark} wide={p.logoWide} size={36} />
+                  <div className="min-w-0">
+                    <p className="font-semibold">
+                      {p.title} {link && <span aria-hidden="true" className="text-muted">↗</span>}
+                    </p>
+                    <p className="text-sm text-muted">{p.line}</p>
+                  </div>
                 </div>
+              </>
+            );
+            const cls = "reveal group block rounded-2xl border border-line p-3 transition-all duration-300 md:p-4";
+            return link ? (
+              <a
+                key={p.slug}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${cls} hover:-translate-y-1 hover:border-line-strong`}
+              >
+                {body}
+              </a>
+            ) : (
+              <div key={p.slug} className={cls}>
+                {body}
               </div>
-            </a>
-          ))}
+            );
+          })}
         </div>
       </Section>
 
