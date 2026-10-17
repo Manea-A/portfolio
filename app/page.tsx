@@ -27,20 +27,20 @@ const liveLogos = featured.flatMap((p) => [
 
 const experience = [
   {
-    role: "Software Engineering Lead",
-    org: "AIP",
-    logo: "/projects/logos/aip.png",
-    meta: "Riyadh · Full-time",
-    years: "Jan – Oct 2026",
-    note: "Led software architecture across enterprise and industrial systems, set cloud and engineering standards, and architected AI solutions (LLMs, agents, RAG) for ERP, MES, CMMS, and SCADA environments.",
-  },
-  {
     role: "Lead Software Architect & Co-founder",
     org: "ISOPluss",
     logo: "/projects/logos/isopluss.png",
     meta: "Riyadh · Part-time",
     years: "Apr 2025 – now",
     note: "Architected the multi-tenant compliance platform behind ISOPluss, HaccPlus, and IsoProfissional, and own its infrastructure, CI/CD, and data security.",
+  },
+  {
+    role: "Software Engineering Lead",
+    org: "AIP",
+    logo: "/projects/logos/aip.png",
+    meta: "Riyadh · Full-time",
+    years: "Jan – Oct 2026",
+    note: "Led software architecture across enterprise and industrial systems, set cloud and engineering standards, and architected AI solutions (LLMs, agents, RAG) for ERP, MES, CMMS, and SCADA environments.",
   },
   {
     role: "Senior Software Engineer",
@@ -291,15 +291,15 @@ export default function Home() {
         </div>
 
         <div className="reveal mt-20">
-          <h3 className="text-xl font-semibold tracking-tight">Client websites</h3>
-          <p className="mt-1 text-muted">Company sites I designed and built.</p>
+          <h3 className="text-xl font-semibold tracking-tight">Other projects</h3>
+          <p className="mt-1 text-muted">Company websites and smaller builds I designed and built.</p>
         </div>
         <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
           {sites.map((p) => {
             const link = p.links[0];
             const body = (
               <>
-                <ScrollShot src={p.shot} domain={link?.label} alt={`${p.title} website`} />
+                <ScrollShot src={p.shot} domain={link?.label} alt={`${p.title} screenshot`} />
                 <div className="flex items-center gap-3 px-2 pb-1 pt-4">
                   <Logo src={p.logo} alt="" dark={p.logoDark} wide={p.logoWide} size={36} />
                   <div className="min-w-0">
