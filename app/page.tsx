@@ -1,6 +1,7 @@
 import Link from "next/link";
 import CopyEmail from "@/components/CopyEmail";
 import HeroShowcase from "@/components/HeroShowcase";
+import HeroWaves from "@/components/HeroWaves";
 import { Logo, ScrollShot } from "@/components/ProjectVisuals";
 import { StackChips, StackIcons } from "@/components/TechIcons";
 import { bySlug, projects, type Project } from "@/lib/projects";
@@ -173,7 +174,8 @@ export default function Home() {
       {/* ── Hero ──────────────────────────────────────────────── */}
       <section className="relative overflow-hidden">
         <div aria-hidden="true" className="hero-grid absolute inset-0" />
-        <div aria-hidden="true" className="hero-glow absolute inset-0" />
+        <div aria-hidden="true" className="hero-glow hero-glow-drift absolute inset-0" />
+        <HeroWaves />
         <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-5 pb-20 pt-14 md:px-8 md:pt-20 lg:grid-cols-[1.05fr_1fr] lg:pb-28">
           <div>
             <p className="rise rise-1 meta inline-flex items-center gap-2 rounded-full border border-line bg-bg/70 px-3 py-1.5 text-muted backdrop-blur">

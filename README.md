@@ -14,6 +14,7 @@ libraries; all content is server-rendered and readable without JavaScript.
 | `lib/site.ts` | Site URL, email, and profile links |
 | `components/ProjectVisuals.tsx` | Logo tiles, hover-to-scroll screenshots, and the flow strip |
 | `components/HeroShowcase.tsx` | Tilting stack of live products in the hero (Motion) |
+| `components/HeroWaves.tsx` | Animated wave lines behind the hero (canvas, follows the pointer) |
 | `components/TechIcons.tsx` | Brand logos for the stack (simple-icons) |
 
 ## Design
