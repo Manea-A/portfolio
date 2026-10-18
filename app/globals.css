@@ -74,8 +74,9 @@ html {
   }
 }
 
+/* no background on body: <html> paints it, so the fixed ClarityField
+   canvas (z-index -10) can sit between the page colour and the content */
 body {
-  background: var(--bg);
   color: var(--fg);
   font-family: var(--font-sans);
   font-feature-settings: "ss01", "cv11";
@@ -190,15 +191,6 @@ body {
 .liquid-title[data-gl="on"]::selection,
 .liquid-title[data-gl="on"] *::selection {
   color: var(--fg);
-}
-
-/* ── Complexity → clarity field (ClarityField) ──────────────────
-   Soft at the top and bottom, and quieter behind the headline. */
-.clarity-field {
-  mask-image:
-    linear-gradient(180deg, transparent, #000 14%, #000 86%, transparent),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.55), #000 45%);
-  mask-composite: intersect;
 }
 
 /* ── Rotating phrase ─────────────────────────────────────────── */

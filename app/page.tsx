@@ -174,8 +174,8 @@ export default function Home() {
   return (
     <>
       {/* ── Hero ──────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden">
-        <ClarityField />
+      <ClarityField />
+      <section data-hero className="relative overflow-hidden">
         <div aria-hidden="true" className="hero-glow absolute inset-0" />
         <div aria-hidden="true" className="absolute inset-0 overflow-hidden">
           <div className="grain" />
