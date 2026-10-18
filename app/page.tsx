@@ -182,14 +182,7 @@ export default function Home() {
         </div>
         <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-5 pb-20 pt-14 md:px-8 md:pt-20 lg:grid-cols-[1.05fr_1fr] lg:pb-28">
           <div>
-            <p className="rise rise-1 meta inline-flex items-center gap-2 rounded-full border border-line bg-bg/70 px-3 py-1.5 text-muted backdrop-blur">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-ok opacity-60 motion-safe:animate-ping" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-ok" />
-              </span>
-              Available for select work · Riyadh
-            </p>
-            <div className="rise rise-2 mt-6">
+            <div className="rise rise-2">
               <LiquidTitle
                 lines={["Manea", "Abdullah"]}
                 className="font-serif text-[4.5rem] leading-[0.92] tracking-[-0.02em] md:text-[7.5rem]"

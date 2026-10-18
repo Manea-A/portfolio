@@ -5,31 +5,42 @@ import { useEffect, useRef } from "react";
 /*
  * "Complexity to clarity", drawn on one fixed canvas behind the home page.
  *
- * In the hero, threads enter on the left and wander through two layers of
- * curl noise, each on its own path, so they cross and knot (complexity).
- * Moving right the turbulence eases off and every thread settles into its
- * own evenly spaced lane (clarity).
+ * In the hero, threads enter on the left and drift through a slow curl-noise
+ * field, braiding loosely around each other (complexity). Moving right the
+ * swirl eases off and every thread settles into its own evenly spaced lane
+ * (clarity). On wide screens the lanes then bend down into a bundle of rails
+ * in the page margin that runs the length of the page and crosses to the
+ * other side at each section.
  *
- * On wide screens the lanes then bend down, like a highway interchange,
- * into a tidy bundle of rails in the page margin. The rails run the length
- * of the page and switch sides at each section with a smooth S-curve, so
- * scrolling feels like following the system down. Scrolling also speeds up
- * the pulses travelling along the rails.
+ * Light moves through it: a soft sheen sweeps along the lines, and glowing
+ * pulses with fading tails travel the threads and race down the rails while
+ * you scroll.
  *
- * Narrow screens keep the hero part only. Reduced motion redraws on scroll
- * without animating.
+ * Cheap by design: the rail path is precomputed per layout, hero threads are
+ * re-traced every other frame, and nothing runs while the tab is hidden.
+ * Narrow screens keep the hero part only; reduced motion draws still frames.
  */
 
-const THREADS = 42;
-const STEP = 7; // px per integration step in the hero
-const MAX_STEPS = 520;
+const THREADS = 26;
+const STEP = 9; // px per integration step in the hero
+const MAX_STEPS = 320;
+const BEND = 16; // points in the bend from lane to rail
 const CONTENT = 1152; // max-w-6xl
 const TURN = 170; // px a lane takes to bend from horizontal to vertical
 const CROSS = 300; // px a rail takes to cross to the other side
+const RES = 4; // px resolution of the precomputed rail path
+const TAIL = 18; // points in a hero pulse's tail
 
 const smooth = (a: number, b: number, v: number) => {
   const t = Math.min(Math.max((v - a) / (b - a), 0), 1);
   return t * t * t * (t * (t * 6 - 15) + 10);
+};
+
+const rgbOf = (ctx: CanvasRenderingContext2D, css: string) => {
+  ctx.fillStyle = "#000";
+  ctx.fillStyle = css;
+  const hex = ctx.fillStyle;
+  return [1, 3, 5].map((k) => parseInt(hex.slice(k, k + 2), 16));
 };
 
 export default function ClarityField() {
@@ -43,9 +54,8 @@ export default function ClarityField() {
 
     let vw = 0;
     let vh = 0;
-    let muted = "#5c5d65";
-    let mutedSoft = "rgba(92,93,101,.5)";
-    let accent = "#2b55c9";
+    let dark = false;
+    const col = { muted: "", mutedSoft: "", accent: "", accentSoft: "", glow: "", glowSoft: "" };
     let raf = 0;
     let frame = 0;
 
@@ -57,7 +67,9 @@ export default function ClarityField() {
     let rail = false;
     let railRight = 0;
     let railLeft = 0;
-    let gap = 2.4;
+    let gap = 3.2;
+    let railXs = new Float32Array(0); // rail centre x every RES px of the page
+    let railSlope = new Float32Array(0);
 
     let scrollY = window.scrollY;
     let pulseShift = 0; // extra pulse travel earned by scrolling
@@ -66,21 +78,28 @@ export default function ClarityField() {
     const seeds = Array.from({ length: THREADS }, (_, i) => ({
       y: (i + Math.random()) / THREADS,
       phase: Math.random(),
-      speed: 0.6 + Math.random() * 0.7,
-      wobble: Math.random() * 10,
+      speed: 0.7 + Math.random() * 0.6,
+      wobble: Math.random() * 2.4,
     }));
     // lanes are handed out in entry order so threads never cross once resolved
     const order = seeds.map((s, i) => [s.y, i] as const).sort((a, b) => a[0] - b[0]);
-    const pts = new Float32Array((MAX_STEPS + 24) * 2);
+    const paths = order.map(() => new Float32Array((MAX_STEPS + BEND) * 2));
+    const counts = new Int32Array(THREADS);
 
     const readColors = () => {
       const cs = getComputedStyle(document.documentElement);
-      muted = cs.getPropertyValue("--muted").trim() || muted;
-      accent = cs.getPropertyValue("--accent").trim() || accent;
-      ctx.fillStyle = muted;
-      const hex = ctx.fillStyle;
-      const [r, g, b] = [1, 3, 5].map((k) => parseInt(hex.slice(k, k + 2), 16));
-      mutedSoft = `rgba(${r},${g},${b},0.45)`;
+      const m = rgbOf(ctx, cs.getPropertyValue("--muted").trim() || "#5c5d65");
+      const a = rgbOf(ctx, cs.getPropertyValue("--accent").trim() || "#2b55c9");
+      const bg = rgbOf(ctx, cs.getPropertyValue("--bg").trim() || "#fafaf9");
+      dark = bg[0] + bg[1] + bg[2] < 300;
+      const g = dark ? [214, 226, 255] : a.map((v) => Math.round(v * 0.85));
+      const rgba = (c: number[], o: number) => `rgba(${c.join(",")},${o})`;
+      col.muted = rgba(m, 0.5);
+      col.mutedSoft = rgba(m, 0.22);
+      col.accent = rgba(a, 0.55);
+      col.accentSoft = rgba(a, 0.3);
+      col.glow = rgba(g, 1);
+      col.glowSoft = rgba(g, 0);
     };
 
     const measure = () => {
@@ -103,187 +122,255 @@ export default function ClarityField() {
 
       const margin = (vw - CONTENT) / 2;
       rail = margin >= 96;
-      gap = Math.min(2.4, (margin - 36) / THREADS);
+      gap = Math.min(3.2, (margin - 36) / THREADS);
       railRight = vw - margin / 2;
       railLeft = margin / 2;
+
+      // precompute where the rail bundle sits down the whole page: right
+      // first, then alternating from the experience section on
+      const n = Math.ceil(docH / RES) + 2;
+      railXs = new Float32Array(n);
+      railSlope = new Float32Array(n);
+      for (let k = 0; k < n; k++) {
+        const y = k * RES;
+        let x = railRight;
+        sectionTops.forEach((top, s) => {
+          const side = s < 2 ? railRight : s % 2 === 0 ? railLeft : railRight;
+          x += (side - x) * smooth(top - CROSS / 2, top + CROSS / 2, y);
+        });
+        railXs[k] = x;
+      }
+      for (let k = 1; k < n - 1; k++) railSlope[k] = (railXs[k + 1] - railXs[k - 1]) / (2 * RES);
+      trace(performance.now());
     };
 
-    // which side the rails sit on below the hero: right, then alternate
-    // from the work section on, crossing over around each section's top
-    const railX = (y: number) => {
-      let x = railRight;
-      sectionTops.forEach((top, k) => {
-        const side = k < 2 ? railRight : k % 2 === 0 ? railLeft : railRight;
-        x += (side - x) * smooth(top - CROSS / 2, top + CROSS / 2, y);
-      });
-      return x;
+    const at = (arr: Float32Array, y: number) => {
+      const f = Math.min(Math.max(y / RES, 0), arr.length - 1.001);
+      const k = Math.floor(f);
+      return arr[k] + (arr[k + 1] - arr[k]) * (f - k);
     };
     const laneOffset = (lane: number) => ((THREADS - 1) / 2 - lane) * gap;
-    // a point on a rail, offset perpendicular to the bundle's direction so the
-    // lines keep their spacing through a crossing instead of bunching up
-    const railPoint = (y: number, off: number): [number, number] => {
-      const dxdy = (railX(y + 1) - railX(y - 1)) / 2;
-      const len = Math.hypot(dxdy, 1);
-      return [railX(y) + off / len, y - (off * dxdy) / len];
+    // a point on a rail, offset perpendicular to the bundle so the lines keep
+    // their spacing through a crossing
+    const railPoint = (y: number, off: number, out: number[]) => {
+      const s = at(railSlope, y);
+      const len = Math.hypot(s, 1);
+      out[0] = at(railXs, y) + off / len;
+      out[1] = y - (off * s) / len;
     };
 
-    // Trace one hero thread in document coordinates. Returns its point count.
-    const trace = (entry: number, lane: number, t: number, wobble: number) => {
+    // trace every hero thread (document coordinates) into `paths`
+    const trace = (time: number) => {
+      const t = time * 0.00009;
       const h = heroH;
-      let x = -20;
-      let y = entry * h;
-      const laneY = h * (0.1 + 0.8 * ((lane + 0.5) / THREADS));
-      const endX = rail ? railRight - 90 - (THREADS - lane) * 2.2 : vw + 20;
       const px = pointer.x;
       const py = pointer.y + scrollY - heroTop;
-      let n = 0;
-      for (; n < MAX_STEPS && x < endX; n++) {
-        pts[n * 2] = x;
-        pts[n * 2 + 1] = y + heroTop;
-        // 1 = tangled, 0 = resolved
-        const chaos = 1 - smooth(vw * 0.08, vw * 0.62, x);
-        // two octaves of curl noise; each thread gets its own slice of time,
-        // so they cross and knot instead of running side by side
-        const tt = t + wobble;
-        const s1 = x * 0.0058 + tt;
-        const s2 = y * 0.0069 - tt * 0.8;
-        const s3 = (x * 0.7 - y) * 0.0037 + tt * 1.3;
-        const s4 = x * 0.016 - tt * 1.7;
-        const s5 = y * 0.019 + tt * 1.1;
-        let vx = -0.0069 * Math.sin(s1) * Math.sin(s2) - 0.0022 * Math.cos(s3) - 0.0085 * Math.sin(s4) * Math.sin(s5);
-        let vy = -(0.0058 * Math.cos(s1) * Math.cos(s2) + 0.0016 * Math.cos(s3) + 0.0072 * Math.cos(s4) * Math.cos(s5));
-        vx = vx * 380 * chaos + 0.75 + (1 - chaos) * 1.3;
-        vy = vy * 380 * chaos + Math.max(-1, Math.min(1, (laneY - y) * 0.03)) * (1 - chaos);
-        // the pointer twists what it passes
-        const dx = x - px;
-        const dy = y - py;
-        const d2 = dx * dx + dy * dy;
-        if (d2 < 22000) {
-          const f = (1 - d2 / 22000) * 1.6;
-          vx += (-dy / 70) * f;
-          vy += (dx / 70) * f;
-        }
-        const len = Math.hypot(vx, vy) || 1;
-        x += (vx / len) * STEP;
-        y += (vy / len) * STEP;
-      }
-      if (!rail) return n;
-      // bend down into this lane's rail
-      const x0 = x;
-      const y0 = y + heroTop;
-      const x3 = railRight + laneOffset(lane);
-      const y3 = y0 + TURN;
-      for (let k = 1; k <= 20; k++) {
-        const u = k / 20;
-        const a = (1 - u) ** 3;
-        const b = 3 * (1 - u) ** 2 * u;
-        const c = 3 * (1 - u) * u * u;
-        const d = u ** 3;
-        pts[n * 2] = a * x0 + b * (x0 + (x3 - x0) * 0.75) + c * x3 + d * x3;
-        pts[n * 2 + 1] = a * y0 + b * y0 + c * (y0 + TURN * 0.35) + d * y3;
-        n++;
-      }
-      return n;
-    };
-
-    const draw = (time: number) => {
-      const t = time * 0.00012;
-      pointer.x += (pointer.tx - pointer.x) * 0.12;
-      pointer.y += (pointer.ty - pointer.y) * 0.12;
-      ctx.clearRect(0, 0, vw, vh);
-      ctx.lineJoin = "round";
-      const heroVisible = heroTop + heroH + TURN > scrollY;
-      const grad = ctx.createLinearGradient(0, 0, vw, 0);
-      grad.addColorStop(0, mutedSoft);
-      grad.addColorStop(0.3, muted);
-      grad.addColorStop(0.72, accent);
-
       order.forEach(([entry, i], lane) => {
-        const seed = seeds[i];
-        let railStart = heroTop + heroH * 0.9 + TURN;
-
-        if (heroVisible || rail) {
-          const n = trace(entry, lane, t, seed.wobble);
-          railStart = pts[(n - 1) * 2 + 1];
-          if (heroVisible) {
-            ctx.strokeStyle = grad;
-            ctx.globalAlpha = 0.28;
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(pts[0], pts[1] - scrollY);
-            for (let k = 1; k < n; k++) ctx.lineTo(pts[k * 2], pts[k * 2 + 1] - scrollY);
-            ctx.stroke();
-            if (!reduced) {
-              const head = Math.floor(((time * 0.00006 * seed.speed + seed.phase) % 1) * (n - 1));
-              const tail = Math.max(0, head - 12);
-              ctx.globalAlpha = 0.85;
-              ctx.lineWidth = 1.5;
-              ctx.beginPath();
-              ctx.moveTo(pts[tail * 2], pts[tail * 2 + 1] - scrollY);
-              for (let k = tail + 1; k <= head; k++) ctx.lineTo(pts[k * 2], pts[k * 2 + 1] - scrollY);
-              ctx.stroke();
-            }
+        const pts = paths[lane];
+        const wob = t + seeds[i].wobble;
+        let x = -20;
+        let y = entry * h;
+        const laneY = h * (0.1 + 0.8 * ((lane + 0.5) / THREADS));
+        const endX = rail ? railRight - 90 - (THREADS - lane) * 2.6 : vw + 20;
+        let n = 0;
+        for (; n < MAX_STEPS && x < endX; n++) {
+          pts[n * 2] = x;
+          pts[n * 2 + 1] = y + heroTop;
+          // 1 = tangled, 0 = resolved
+          const chaos = 1 - smooth(vw * 0.04, vw * 0.58, x);
+          let vx = 0.8 + (1 - chaos) * 1.2;
+          let vy = Math.max(-1, Math.min(1, (laneY - y) * 0.03)) * (1 - chaos);
+          if (chaos > 0.01) {
+            // one slow octave of curl noise: wide, loose loops
+            const s1 = x * 0.0043 + wob;
+            const s2 = y * 0.0052 - wob * 0.8;
+            const s3 = (x * 0.6 - y) * 0.0029 + wob * 1.2;
+            vx += (-0.0052 * Math.sin(s1) * Math.sin(s2) - 0.0017 * Math.cos(s3)) * 330 * chaos;
+            vy += -(0.0043 * Math.cos(s1) * Math.cos(s2) + 0.001 * Math.cos(s3)) * 330 * chaos;
+          }
+          const dx = x - px;
+          const dy = y - py;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < 22000) {
+            const f = (1 - d2 / 22000) * 1.5;
+            vx += (-dy / 70) * f;
+            vy += (dx / 70) * f;
+          }
+          const len = Math.hypot(vx, vy) || 1;
+          x += (vx / len) * STEP;
+          y += (vy / len) * STEP;
+        }
+        if (rail) {
+          // bend down into this lane's rail
+          const x0 = x;
+          const y0 = y + heroTop;
+          const x3 = railRight + laneOffset(lane);
+          for (let k = 1; k <= BEND; k++) {
+            const u = k / BEND;
+            const b = 3 * (1 - u) ** 2 * u;
+            const c = 3 * (1 - u) * u * u;
+            const d = u ** 3;
+            const a = (1 - u) ** 3;
+            pts[n * 2] = a * x0 + b * (x0 + (x3 - x0) * 0.75) + (c + d) * x3;
+            pts[n * 2 + 1] = (a + b) * y0 + c * (y0 + TURN * 0.35) + d * (y0 + TURN);
+            n++;
           }
         }
+        counts[lane] = n;
+      });
+    };
 
-        if (!rail) return;
-        // the rail: from the end of the bend to the bottom of the page,
-        // only the part that is on screen
-        const from = Math.max(railStart, scrollY - 20);
-        const to = Math.min(docH, scrollY + vh + 20);
-        if (to <= from) return;
-        const off = laneOffset(lane);
-        ctx.strokeStyle = accent;
+    const p = [0, 0];
+    const draw = (time: number) => {
+      pointer.x += (pointer.tx - pointer.x) * 0.15;
+      pointer.y += (pointer.ty - pointer.y) * 0.15;
+      ctx.clearRect(0, 0, vw, vh);
+      ctx.lineJoin = "round";
+      ctx.lineCap = "round";
+      const heroVisible = heroTop + heroH + TURN > scrollY;
+      // a band of light sweeping left to right along the hero threads
+      const sweep = reduced ? -1 : ((time * 0.00005) % 1.4) - 0.2;
+
+      if (heroVisible) {
+        const grad = ctx.createLinearGradient(0, 0, vw, 0);
+        const stops: [number, string][] = [
+          [0, col.mutedSoft],
+          [0.3, col.muted],
+          [0.72, col.accent],
+          [1, col.accent],
+        ];
+        if (sweep > 0.02 && sweep < 0.98) {
+          const base = sweep < 0.5 ? col.muted : col.accent;
+          stops.push([sweep - 0.06, base], [sweep, col.glow], [sweep + 0.06, base]);
+        }
+        stops
+          .filter(([o]) => o >= 0 && o <= 1)
+          .sort((a, b) => a[0] - b[0])
+          .forEach(([o, c]) => grad.addColorStop(o, c));
+        ctx.strokeStyle = grad;
         ctx.lineWidth = 1;
-        // straight runs and crossings are drawn as separate strokes so a
-        // crossing can be lighter than the rail
-        let y = from;
-        let crossing = false;
-        ctx.globalAlpha = 0.3;
+        ctx.globalAlpha = 0.75;
         ctx.beginPath();
-        let p = railPoint(y, off);
-        ctx.moveTo(p[0], p[1] - scrollY);
-        while (y < to) {
-          const slope = Math.abs(railX(y + 1) - railX(y - 1)) / 2;
-          y += 8 / Math.max(1, slope);
-          p = railPoint(y, off);
-          ctx.lineTo(p[0], p[1] - scrollY);
-          if (slope > 0.3 !== crossing) {
-            ctx.stroke();
-            crossing = !crossing;
-            ctx.globalAlpha = crossing ? 0.16 : 0.3;
-            ctx.beginPath();
-            ctx.moveTo(p[0], p[1] - scrollY);
+        for (let lane = 0; lane < THREADS; lane++) {
+          const pts = paths[lane];
+          ctx.moveTo(pts[0], pts[1] - scrollY);
+          for (let k = 1; k < counts[lane]; k++) ctx.lineTo(pts[k * 2], pts[k * 2 + 1] - scrollY);
+        }
+        ctx.stroke();
+      }
+
+      if (rail) {
+        // rails: one path, with light drifting down them as you scroll
+        const from0 = scrollY - 20;
+        const to = Math.min(docH, scrollY + vh + 20);
+        const grad = ctx.createLinearGradient(0, 0, 0, vh);
+        const band = reduced ? -1 : (((time * 0.00012 + pulseShift * 0.0006) % 1.6) - 0.3);
+        grad.addColorStop(0, col.accentSoft);
+        if (band > 0.05 && band < 0.95) {
+          grad.addColorStop(band - 0.05, col.accentSoft);
+          grad.addColorStop(band, col.accent);
+          grad.addColorStop(band + 0.05, col.accentSoft);
+        }
+        grad.addColorStop(1, col.accentSoft);
+        ctx.strokeStyle = grad;
+        ctx.globalAlpha = 1;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let lane = 0; lane < THREADS; lane++) {
+          const n = counts[lane];
+          const start = Math.max(paths[lane][(n - 1) * 2 + 1], from0);
+          if (to <= start) continue;
+          const off = laneOffset(lane);
+          let y = start;
+          railPoint(y, off, p);
+          ctx.moveTo(p[0], p[1] - scrollY);
+          while (y < to) {
+            y += 9 / Math.max(1, Math.abs(at(railSlope, y)));
+            railPoint(y, off, p);
+            ctx.lineTo(p[0], p[1] - scrollY);
           }
         }
         ctx.stroke();
+      }
 
-        if (reduced) return;
-        // a pulse running down the rail; scrolling pushes it along
-        const length = docH - railStart;
-        const head = railStart + ((time * 0.11 * seed.speed + pulseShift * seed.speed + seed.phase * length) % length);
-        if (head > scrollY - 60 && head - 60 < scrollY + vh) {
-          ctx.globalAlpha = 0.9;
-          ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          let q = Math.max(railStart, head - 60);
-          let pt = railPoint(q, off);
-          ctx.moveTo(pt[0], pt[1] - scrollY);
-          while (q < head) {
-            q += 6 / Math.max(1, Math.abs(railX(q + 1) - railX(q - 1)) / 2);
-            pt = railPoint(q, off);
-            ctx.lineTo(pt[0], pt[1] - scrollY);
-          }
-          ctx.stroke();
+      if (reduced) return;
+
+      // pulses: a soft halo plus a bright core that fades along its tail
+      ctx.globalCompositeOperation = dark ? "lighter" : "source-over";
+      for (let lane = 0; lane < THREADS; lane++) {
+        const seed = seeds[order[lane][1]];
+        const pts = paths[lane];
+        const n = counts[lane];
+
+        if (heroVisible && n > TAIL) {
+          const head = Math.floor(((time * 0.00005 * seed.speed + seed.phase) % 1) * (n - 1));
+          comet((k, out) => {
+            const idx = Math.max(0, head - TAIL + k);
+            out[0] = pts[idx * 2];
+            out[1] = pts[idx * 2 + 1] - scrollY;
+          }, TAIL);
         }
-      });
+
+        if (rail) {
+          const start = pts[(n - 1) * 2 + 1];
+          const length = docH - start;
+          const head = start + ((time * 0.11 * seed.speed + pulseShift * seed.speed + seed.phase * length) % length);
+          if (head > scrollY - 80 && head - 80 < scrollY + vh) {
+            const off = laneOffset(lane);
+            comet((k, out) => {
+              railPoint(Math.max(start, head - 80 + (k * 80) / 16), off, out);
+              out[1] -= scrollY;
+            }, 16);
+          }
+        }
+      }
+      ctx.globalCompositeOperation = "source-over";
       ctx.globalAlpha = 1;
     };
 
+    // draws a comet along `count` points supplied by `point`, tail first
+    const q = [0, 0];
+    const r = [0, 0];
+    const comet = (point: (k: number, out: number[]) => void, count: number) => {
+      ctx.strokeStyle = col.glow;
+      // halo
+      ctx.globalAlpha = dark ? 0.16 : 0.12;
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      point(Math.floor(count / 2), q);
+      ctx.moveTo(q[0], q[1]);
+      for (let k = Math.floor(count / 2) + 1; k <= count; k++) {
+        point(k, q);
+        ctx.lineTo(q[0], q[1]);
+      }
+      ctx.stroke();
+      // core, brightening toward the head
+      ctx.lineWidth = 1.6;
+      point(0, r);
+      for (let k = 1; k <= count; k++) {
+        point(k, q);
+        ctx.globalAlpha = (k / count) ** 1.6 * 0.95;
+        ctx.beginPath();
+        ctx.moveTo(r[0], r[1]);
+        ctx.lineTo(q[0], q[1]);
+        ctx.stroke();
+        r[0] = q[0];
+        r[1] = q[1];
+      }
+      // head
+      ctx.globalAlpha = 0.95;
+      ctx.fillStyle = col.glow;
+      ctx.beginPath();
+      ctx.arc(q[0], q[1], 1.7, 0, Math.PI * 2);
+      ctx.fill();
+    };
+
     const loop = (time: number) => {
-      // full rate while the hero is on screen, half rate further down
-      const heroVisible = heroTop + heroH > scrollY;
-      if (heroVisible || frame++ % 2 === 0) draw(time);
+      frame++;
+      const heroVisible = heroTop + heroH + TURN > scrollY;
+      // re-trace the hero every other frame; below it only every 4th frame draws
+      if (heroVisible && frame % 2 === 0) trace(time);
+      if (heroVisible || frame % 2 === 0) draw(time);
       raf = requestAnimationFrame(loop);
     };
     const start = () => {
@@ -305,9 +392,13 @@ export default function ClarityField() {
       scrollY = y;
       if (reduced) draw(0);
     };
+    let resizeQueued = 0;
     const onResize = () => {
-      measure();
-      draw(performance.now());
+      cancelAnimationFrame(resizeQueued);
+      resizeQueued = requestAnimationFrame(() => {
+        measure();
+        draw(performance.now());
+      });
     };
     // page height changes as images load
     const ro = new ResizeObserver(onResize);
@@ -342,6 +433,7 @@ export default function ClarityField() {
 
     return () => {
       stop();
+      cancelAnimationFrame(resizeQueued);
       ro.disconnect();
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
