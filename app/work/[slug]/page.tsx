@@ -36,8 +36,10 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
 function SubCard({ s }: { s: SubProduct }) {
   const body = (
     <>
-      <ScrollShot src={s.shot} domain={s.href ? new URL(s.href).hostname : undefined} alt={`${s.title} live site`} />
-      <div className="px-2 pb-1 pt-4">
+      {s.shot && (
+        <ScrollShot src={s.shot} domain={s.href ? new URL(s.href).hostname : undefined} alt={`${s.title} live site`} />
+      )}
+      <div className={`px-2 pb-1 ${s.shot ? "pt-4" : "pt-2"}`}>
         <div className="flex items-center gap-3">
           <Logo src={s.logo} alt="" size={36} />
           <div className="min-w-0">

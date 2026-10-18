@@ -1,5 +1,6 @@
 import Link from "next/link";
 import CopyEmail from "@/components/CopyEmail";
+import ClarityField from "@/components/ClarityField";
 import HeroShowcase from "@/components/HeroShowcase";
 import LiquidTitle from "@/components/LiquidTitle";
 import RotatingWords from "@/components/RotatingWords";
@@ -174,7 +175,7 @@ export default function Home() {
     <>
       {/* ── Hero ──────────────────────────────────────────────── */}
       <section className="relative overflow-hidden">
-        <div aria-hidden="true" className="hero-grid absolute inset-0" />
+        <ClarityField />
         <div aria-hidden="true" className="hero-glow absolute inset-0" />
         <div aria-hidden="true" className="absolute inset-0 overflow-hidden">
           <div className="grain" />
