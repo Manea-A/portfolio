@@ -19,8 +19,11 @@
   --ok: #1f8a4c;
 }
 
+/* Dark follows the OS until the visitor picks a theme with the toggle,
+   which sets data-theme on <html> (see ThemeToggle). */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
     --bg: #0c0c0d;
     --surface: #151517;
     --fg: #ececee;
@@ -30,6 +33,20 @@
     --accent: #8eaaff;
     --ok: #4cc283;
   }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0c0c0d;
+  --surface: #151517;
+  --fg: #ececee;
+  --muted: #a0a0a8;
+  --line: #232326;
+  --line-strong: #34343a;
+  --accent: #8eaaff;
+  --ok: #4cc283;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
 }
 
 @theme inline {
@@ -220,10 +237,14 @@ body {
   animation: grain 1s steps(1) infinite;
 }
 @media (prefers-color-scheme: dark) {
-  .grain {
+  :root:not([data-theme="light"]) .grain {
     opacity: 0.14;
     filter: invert(1);
   }
+}
+:root[data-theme="dark"] .grain {
+  opacity: 0.14;
+  filter: invert(1);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -258,4 +279,56 @@ body {
 }
 .link:hover {
   text-decoration-color: currentColor;
+}
+
+/* ── Theme toggle ──────────────────────────────────────────────
+   Sun by default; in dark the bite slides over the core to make a moon,
+   the core grows a little and the rays fold in. The page itself swaps
+   with a circular reveal (View Transitions) started from the button. */
+.theme-toggle svg {
+  transition: transform 0.6s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.theme-toggle .theme-core {
+  transition: r 0.5s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.theme-toggle .theme-bite {
+  transition: cx 0.5s cubic-bezier(0.65, 0, 0.35, 1), cy 0.5s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.theme-toggle .theme-rays {
+  transform-origin: 12px 12px;
+  transition: transform 0.5s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.3s ease;
+}
+.theme-toggle:hover .theme-rays {
+  transform: rotate(45deg);
+}
+.theme-toggle[data-dark] svg {
+  transform: rotate(360deg);
+}
+.theme-toggle[data-dark] .theme-core {
+  r: 8px;
+}
+.theme-toggle[data-dark] .theme-bite {
+  cx: 16.5px;
+  cy: 7.5px;
+}
+.theme-toggle[data-dark] .theme-rays {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.4);
+}
+.theme-toggle:active svg {
+  scale: 0.85;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-new(root) {
+  z-index: 2;
+}
+@media (prefers-reduced-motion: reduce) {
+  .theme-toggle *,
+  .theme-toggle svg {
+    transition: none;
+  }
 }

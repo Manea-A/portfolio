@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ThemeToggle from "@/components/ThemeToggle";
 import { CV } from "@/lib/site";
 
 const nav = [
@@ -12,12 +13,12 @@ const nav = [
 export default function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg/85 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-6 px-5 md:px-8">
-        <Link href="/" className="font-semibold tracking-tight">
+      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-4 px-5 md:px-8">
+        <Link href="/" className="whitespace-nowrap font-semibold tracking-tight">
           Manea Abdullah
         </Link>
         <nav aria-label="Primary">
-          <ul className="flex items-center gap-5 text-sm md:gap-7">
+          <ul className="flex items-center gap-3.5 text-sm sm:gap-5 md:gap-7">
             {nav.map((item) => (
               <li key={item.href} className={item.mobile ? "" : "hidden sm:block"}>
                 <Link href={item.href} className="text-muted transition-colors hover:text-fg">
@@ -25,6 +26,9 @@ export default function Header() {
                 </Link>
               </li>
             ))}
+            <li className="flex">
+              <ThemeToggle />
+            </li>
             <li>
               <a
                 href={CV}

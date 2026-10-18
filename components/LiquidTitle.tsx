@@ -262,6 +262,7 @@ export default function LiquidTitle({ lines, className = "" }: { lines: string[]
     const scheme = window.matchMedia("(prefers-color-scheme: dark)");
     const onScheme = () => ready && redraw();
     scheme.addEventListener("change", onScheme);
+    window.addEventListener("themechange", onScheme);
     const host = title.closest("section") ?? window;
     host.addEventListener("pointermove", onMove as EventListener);
 
@@ -271,6 +272,7 @@ export default function LiquidTitle({ lines, className = "" }: { lines: string[]
       ro.disconnect();
       io.disconnect();
       scheme.removeEventListener("change", onScheme);
+      window.removeEventListener("themechange", onScheme);
       host.removeEventListener("pointermove", onMove as EventListener);
       delete title.dataset.gl;
     };

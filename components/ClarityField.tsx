@@ -190,6 +190,7 @@ export default function ClarityField() {
     };
     document.addEventListener("visibilitychange", onVisibility);
     scheme.addEventListener("change", onScheme);
+    window.addEventListener("themechange", onScheme);
     if (!reduced) {
       host.addEventListener("pointermove", onMove);
       host.addEventListener("pointerleave", onLeave);
@@ -201,6 +202,7 @@ export default function ClarityField() {
       io.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
       scheme.removeEventListener("change", onScheme);
+      window.removeEventListener("themechange", onScheme);
       host.removeEventListener("pointermove", onMove);
       host.removeEventListener("pointerleave", onLeave);
     };
