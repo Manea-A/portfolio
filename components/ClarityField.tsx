@@ -70,6 +70,9 @@ export default function ClarityField() {
     let gap = 3.2;
     let railXs = new Float32Array(0); // rail centre x every RES px of the page
     let railSlope = new Float32Array(0);
+    // circuit traces from the rail to each project card
+    type Trace = { top: number; bottom: number; branch: Float32Array; loop: Float32Array; phase: number };
+    let traces: Trace[] = [];
 
     let scrollY = window.scrollY;
     let pulseShift = 0; // extra pulse travel earned by scrolling
@@ -141,7 +144,80 @@ export default function ClarityField() {
         railXs[k] = x;
       }
       for (let k = 1; k < n - 1; k++) railSlope[k] = (railXs[k + 1] - railXs[k - 1]) / (2 * RES);
+      traces = rail ? [...document.querySelectorAll<HTMLElement>("[data-trace]")].map(buildTrace) : [];
       trace(performance.now());
+    };
+
+    // layout position ignoring transforms (cards lift on hover and rise in)
+    const docRect = (el: HTMLElement) => {
+      let x = 0;
+      let y = 0;
+      for (let e: HTMLElement | null = el; e; e = e.offsetParent as HTMLElement | null) {
+        x += e.offsetLeft;
+        y += e.offsetTop;
+      }
+      return { left: x, top: y, right: x + el.offsetWidth, bottom: y + el.offsetHeight };
+    };
+
+    // A branch from the rail's inner line to the card, and the card's outline
+    // (7px outside its border) as a closed loop starting where the branch lands.
+    const buildTrace = (el: HTMLElement): Trace => {
+      const r = docRect(el);
+      const pad = 7;
+      const R = 16 + pad;
+      const x0 = r.left - pad;
+      const y0 = r.top - pad;
+      const x1 = r.right + pad;
+      const y1 = r.bottom + pad;
+      const yb = r.top + 46;
+      const rx = at(railXs, yb);
+      const right = rx > vw / 2;
+      const dir = right ? -1 : 1; // from the rail toward the content
+      const startX = rx + (right ? laneOffset(THREADS - 1) : laneOffset(0));
+      const entryX = right ? x1 : x0;
+
+      const b: number[] = [];
+      for (let y = yb - 70; y < yb - 30; y += 6) b.push(startX, y);
+      for (let k = 0; k <= 8; k++) {
+        const a = (k / 8) * (Math.PI / 2);
+        b.push(startX + dir * 30 * (1 - Math.cos(a)), yb - 30 + 30 * Math.sin(a));
+      }
+      for (let x = startX + dir * 36; dir * (entryX - x) > 0; x += dir * 8) b.push(x, yb);
+      b.push(entryX, yb);
+
+      // rounded-rect perimeter, clockwise from the top-left end of the top edge
+      const W = x1 - x0 - 2 * R;
+      const H = y1 - y0 - 2 * R;
+      const arc = (Math.PI / 2) * R;
+      const P = 2 * W + 2 * H + 4 * arc;
+      const pointAt = (s: number): [number, number] => {
+        s = ((s % P) + P) % P;
+        if (s < W) return [x0 + R + s, y0];
+        s -= W;
+        if (s < arc) { const a = s / R; return [x1 - R + Math.sin(a) * R, y0 + R - Math.cos(a) * R]; }
+        s -= arc;
+        if (s < H) return [x1, y0 + R + s];
+        s -= H;
+        if (s < arc) { const a = s / R; return [x1 - R + Math.cos(a) * R, y1 - R + Math.sin(a) * R]; }
+        s -= arc;
+        if (s < W) return [x1 - R - s, y1];
+        s -= W;
+        if (s < arc) { const a = s / R; return [x0 + R - Math.sin(a) * R, y1 - R + Math.cos(a) * R]; }
+        s -= arc;
+        if (s < H) return [x0, y1 - R - s];
+        s -= H;
+        const a = s / R;
+        return [x0 + R - Math.cos(a) * R, y0 + R - Math.sin(a) * R];
+      };
+      const entry = right ? W + arc + (yb - y0 - R) : 2 * W + H + 3 * arc + (y1 - R - yb);
+      const count = Math.ceil(P / 6);
+      const loop = new Float32Array((count + 1) * 2);
+      for (let k = 0; k <= count; k++) {
+        const [x, y] = pointAt(entry + (k * P) / count);
+        loop[k * 2] = x;
+        loop[k * 2 + 1] = y;
+      }
+      return { top: r.top, bottom: r.bottom, branch: new Float32Array(b), loop, phase: Math.random() };
     };
 
     const at = (arr: Float32Array, y: number) => {
@@ -293,6 +369,8 @@ export default function ClarityField() {
         ctx.stroke();
       }
 
+      drawTraces(time);
+
       if (reduced) return;
 
       // pulses: a soft halo plus a bright core that fades along its tail
@@ -326,6 +404,75 @@ export default function ClarityField() {
       }
       ctx.globalCompositeOperation = "source-over";
       ctx.globalAlpha = 1;
+    };
+
+    // Scroll-linked: as a card rises from the bottom of the screen to 40%
+    // of the way up, light runs along its branch and then splits to wrap the
+    // card's outline from both sides. Scrolling back retracts it.
+    const drawTraces = (time: number) => {
+      for (const tr of traces) {
+        if (tr.bottom < scrollY - 80 || tr.top - 120 > scrollY + vh) continue;
+        const v = tr.top - scrollY;
+        const p = smooth(0, 1, (vh * 0.95 - v) / (vh * 0.55));
+        if (p <= 0) continue;
+        const nb = tr.branch.length / 2;
+        const nl = tr.loop.length / 2 - 1;
+        const half = Math.floor(nl / 2);
+        const total = nb + half;
+        const drawn = p * total;
+        const inBranch = Math.min(nb, drawn);
+        const inLoop = Math.max(0, drawn - nb);
+
+        ctx.strokeStyle = col.accent;
+        ctx.globalAlpha = 0.9;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(tr.branch[0], tr.branch[1] - scrollY);
+        for (let k = 1; k < inBranch; k++) ctx.lineTo(tr.branch[k * 2], tr.branch[k * 2 + 1] - scrollY);
+        if (inLoop > 0) {
+          for (const sign of [1, -1]) {
+            ctx.moveTo(tr.loop[0], tr.loop[1] - scrollY);
+            for (let k = 1; k <= inLoop && k <= half + 1; k++) {
+              const idx = sign > 0 ? k : nl - k;
+              ctx.lineTo(tr.loop[idx * 2], tr.loop[idx * 2 + 1] - scrollY);
+            }
+          }
+        }
+        ctx.stroke();
+
+        if (reduced) continue;
+        ctx.globalCompositeOperation = dark ? "lighter" : "source-over";
+        if (p < 0.999) {
+          // the drawing head(s)
+          if (inLoop <= 0) {
+            const head = Math.max(1, Math.floor(inBranch) - 1);
+            comet((k, out) => {
+              const idx = Math.max(0, head - 14 + k);
+              out[0] = tr.branch[idx * 2];
+              out[1] = tr.branch[idx * 2 + 1] - scrollY;
+            }, 14);
+          } else {
+            const head = Math.min(half, Math.floor(inLoop));
+            for (const sign of [1, -1]) {
+              comet((k, out) => {
+                const step = Math.max(0, head - 14 + k);
+                const idx = sign > 0 ? step : (nl - step) % nl;
+                out[0] = tr.loop[idx * 2];
+                out[1] = tr.loop[idx * 2 + 1] - scrollY;
+              }, 14);
+            }
+          }
+        } else {
+          // fully wrapped: a slow light circles the card
+          const head = Math.floor(((time * 0.00008 + tr.phase) % 1) * nl);
+          comet((k, out) => {
+            const idx = (head - 20 + k + nl) % nl;
+            out[0] = tr.loop[idx * 2];
+            out[1] = tr.loop[idx * 2 + 1] - scrollY;
+          }, 20);
+        }
+        ctx.globalCompositeOperation = "source-over";
+      }
     };
 
     // draws a comet along `count` points supplied by `point`, tail first

@@ -119,7 +119,7 @@ function Section({
 
 function WorkCard({ p, priority }: { p: Project; priority: boolean }) {
   return (
-    <article className="reveal group relative flex flex-col rounded-2xl border border-line bg-bg p-3 transition-all duration-300 hover:-translate-y-1 hover:border-line-strong hover:shadow-[0_24px_48px_-24px_rgba(0,0,0,0.35)] md:p-4">
+    <article data-trace className="reveal group relative flex flex-col rounded-2xl border border-line bg-bg p-3 transition-all duration-300 hover:-translate-y-1 hover:border-line-strong hover:shadow-[0_24px_48px_-24px_rgba(0,0,0,0.35)] md:p-4">
       <ScrollShot src={p.shot} domain={p.links[0]?.label} alt={`${p.title} live site`} priority={priority} />
       <div className="flex flex-1 flex-col px-2 pb-2 pt-5">
         <div className="flex items-center gap-3">
@@ -305,10 +305,11 @@ export default function Home() {
                 </div>
               </>
             );
-            const cls = "reveal group block rounded-2xl border border-line p-3 transition-all duration-300 md:p-4";
+            const cls = "reveal group block rounded-2xl border border-line bg-bg p-3 transition-all duration-300 md:p-4";
             return link ? (
               <a
                 key={p.slug}
+                data-trace
                 href={link.href}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -317,7 +318,7 @@ export default function Home() {
                 {body}
               </a>
             ) : (
-              <div key={p.slug} className={cls}>
+              <div key={p.slug} data-trace className={cls}>
                 {body}
               </div>
             );
