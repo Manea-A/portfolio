@@ -324,3 +324,91 @@ body {
     transition: none;
   }
 }
+
+/* ── Project cards: tinted glass ─────────────────────────────────
+   Like the contact card: a soft glow in the product's own colour from
+   its own corner, a faint texture that fades out from the glow, and a
+   slightly see-through surface so the rails show blurred behind it.
+   --tint / --glow-at come from the project data; data-texture picks
+   the pattern. */
+.card-look {
+  isolation: isolate;
+  overflow: hidden;
+  --glow-strength: 20%;
+  background:
+    radial-gradient(ellipse 85% 65% at var(--glow-at), color-mix(in srgb, var(--tint) var(--glow-strength), transparent), transparent 70%),
+    color-mix(in srgb, var(--bg) 86%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: --glow-strength 0.4s ease, transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+.card-look:hover {
+  --glow-strength: 32%;
+  border-color: color-mix(in srgb, var(--tint) 35%, var(--line-strong));
+}
+.card-look::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  color: var(--tint);
+  opacity: 0.22;
+  mask-image: radial-gradient(ellipse 80% 70% at var(--glow-at), #000, transparent 75%);
+}
+@property --glow-strength {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 20%;
+}
+.card-look[data-texture="dots"]::before {
+  background-image: radial-gradient(currentColor 1px, transparent 1.4px);
+  background-size: 14px 14px;
+}
+.card-look[data-texture="grid"]::before {
+  background-image:
+    linear-gradient(currentColor 1px, transparent 1px),
+    linear-gradient(90deg, currentColor 1px, transparent 1px);
+  background-size: 28px 28px;
+  opacity: 0.14;
+}
+.card-look[data-texture="rings"]::before {
+  background-image: repeating-radial-gradient(circle at var(--glow-at), currentColor 0 1px, transparent 1px 18px);
+  opacity: 0.16;
+}
+.card-look[data-texture="lines"]::before {
+  background-image: repeating-linear-gradient(135deg, currentColor 0 1px, transparent 1px 10px);
+  opacity: 0.14;
+}
+.card-look[data-texture="noise"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.49 0 0 0 0 0.36 0 0 0 0 1 0 0 0 1.6 -0.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.35;
+}
+.card-look[data-texture="waves"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='24'%3E%3Cpath d='M0 12 Q30 0 60 12 T120 12' fill='none' stroke='black' stroke-width='1'/%3E%3C/svg%3E");
+  background-color: currentColor;
+  -webkit-mask-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='24'%3E%3Cpath d='M0 12 Q30 0 60 12 T120 12' fill='none' stroke='black' stroke-width='1'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse 80% 70% at var(--glow-at), #000, transparent 75%);
+  mask-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='24'%3E%3Cpath d='M0 12 Q30 0 60 12 T120 12' fill='none' stroke='black' stroke-width='1'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse 80% 70% at var(--glow-at), #000, transparent 75%);
+  mask-composite: intersect;
+  -webkit-mask-composite: source-in;
+  background-image: none;
+  opacity: 0.22;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .card-look {
+    --glow-strength: 26%;
+  }
+  :root:not([data-theme="light"]) .card-look:hover {
+    --glow-strength: 38%;
+  }
+}
+:root[data-theme="dark"] .card-look {
+  --glow-strength: 26%;
+}
+:root[data-theme="dark"] .card-look:hover {
+  --glow-strength: 38%;
+}

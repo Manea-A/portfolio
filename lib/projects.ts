@@ -51,6 +51,10 @@ export type Project = {
   metrics: Metric[];
   decisions: { title: string; body: string }[];
   outcome?: string;
+  /** card look: brand-tinted glow, where it shines from, and a texture */
+  tint?: string;
+  glow?: string;
+  texture?: "dots" | "grid" | "rings" | "lines" | "noise" | "waves";
   /** related products shown on the case study */
   family?: SubProduct[];
   familyTitle?: string;
@@ -64,6 +68,9 @@ export type Project = {
 export const projects: Project[] = [
   {
     slug: "isopluss",
+    tint: "#1e5bff",
+    glow: "100% 100%",
+    texture: "grid",
     title: "ISOPluss",
     line: "Multi-tenant SaaS for food-safety and quality compliance, live as three products.",
     org: "ISOPluss, Riyadh",
@@ -127,6 +134,9 @@ export const projects: Project[] = [
   },
   {
     slug: "covita",
+    tint: "#9a6a2f",
+    glow: "0% 100%",
+    texture: "waves",
     title: "COVITA",
     line: "Saudi coffee marketplace connecting importers, roasters, cafés, and coffee lovers.",
     org: "COVITA, Riyadh",
@@ -152,6 +162,9 @@ export const projects: Project[] = [
   },
   {
     slug: "gavelmarket",
+    tint: "#e0313b",
+    glow: "50% 115%",
+    texture: "lines",
     title: "GavelMarket",
     line: "Real-time online auction marketplace for Saudi Arabia, built for high-concurrency bidding.",
     org: "GavelMarket, Saudi Arabia",
@@ -188,6 +201,9 @@ export const projects: Project[] = [
   },
   {
     slug: "aip",
+    tint: "#12a8c4",
+    glow: "100% 75%",
+    texture: "dots",
     title: "AIP System",
     line: "Five Arabic-first AI products for organizations: receptionist, agents, speech-to-text, knowledge, and vision.",
     org: "AIP (Artificial Intelligence Place), Riyadh",
@@ -243,6 +259,9 @@ export const projects: Project[] = [
   },
   {
     slug: "healthwatch",
+    tint: "#2f8fe6",
+    glow: "0% 85%",
+    texture: "rings",
     title: "HealthWatch",
     line: "Real-time telehealth platform streaming smartwatch vitals into hospital workflows.",
     org: "Me'Kaaz, Riyadh",
@@ -288,6 +307,9 @@ export const projects: Project[] = [
   },
   {
     slug: "basmah",
+    tint: "#117a65",
+    glow: "100% 100%",
+    texture: "grid",
     title: "Basmah ISMS",
     line: "ISO 27001 compliance console for security consultants, mapped to Saudi NCA and PDPL requirements.",
     org: "Basmat Tech, Riyadh",
@@ -329,6 +351,9 @@ export const projects: Project[] = [
   },
   {
     slug: "onagents",
+    tint: "#7c5cff",
+    glow: "0% 100%",
+    texture: "noise",
     title: "OnAgents",
     line: "AI agents plus a human team that find customers for local businesses and do the work.",
     org: "OnAgents",
@@ -349,6 +374,9 @@ export const projects: Project[] = [
   },
   {
     slug: "myces",
+    tint: "#3f9b3a",
+    glow: "100% 100%",
+    texture: "waves",
     title: "MYCES platforms",
     line: "Energy, facility, farm, and dam-safety platforms for MYCES Group, from requirements to production.",
     org: "MYCES SDN BHD, Malaysia",
@@ -415,6 +443,9 @@ export const projects: Project[] = [
   },
   {
     slug: "saudihlm",
+    tint: "#d4202c",
+    glow: "100% 100%",
+    texture: "lines",
     title: "Saudi HLM",
     line: "Bilingual company website for a Saudi logistics company.",
     org: "Saudi HLM Logistics",
@@ -434,6 +465,9 @@ export const projects: Project[] = [
   },
   {
     slug: "era-ventures",
+    tint: "#8b5cf6",
+    glow: "0% 100%",
+    texture: "rings",
     title: "ERA Ventures",
     line: "Website for a Riyadh private-workspace and startup ecosystem.",
     org: "ERA Ventures, Riyadh",
@@ -454,6 +488,9 @@ export const projects: Project[] = [
   },
   {
     slug: "saudi-waves",
+    tint: "#14b8a6",
+    glow: "50% 120%",
+    texture: "waves",
     title: "Saudi Integrated Waves",
     line: "Website redesign for a Saudi security and IT solutions company.",
     org: "Saudi Integrated Waves",
@@ -473,6 +510,9 @@ export const projects: Project[] = [
   },
   {
     slug: "golden-point",
+    tint: "#c8912a",
+    glow: "0% 100%",
+    texture: "dots",
     title: "The Golden Point",
     line: "Mobile ordering flow for car touch-up pens mixed to your car's factory paint code.",
     org: "The Golden Point, Saudi Arabia",
