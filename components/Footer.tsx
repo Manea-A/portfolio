@@ -2,8 +2,8 @@ import { EMAIL, GITHUB, LINKEDIN } from "@/lib/site";
 
 export default function Footer() {
   return (
-    <footer className="relative bg-surface">
-      <div className="mx-auto flex max-w-6xl flex-col gap-3 border-t border-line px-5 py-8 text-sm text-muted md:flex-row md:items-center md:justify-between md:px-8">
+    <footer className="site-footer closing relative">
+      <div className="mx-auto footer-inner flex max-w-6xl flex-col gap-3 px-5 py-8 text-sm text-muted md:flex-row md:items-center md:justify-between md:px-8">
         <p>© {new Date().getFullYear()} Manea Abdullah Al-Awbathani · Riyadh, Saudi Arabia</p>
         <ul className="flex gap-5">
           <li>

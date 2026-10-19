@@ -404,3 +404,30 @@ body {
   background:
     radial-gradient(ellipse 60% 85% at 85% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 75%);
 }
+
+/* closing sheet (contact band + footer): rounded top, and translucent so
+   the clarity lines can fan out behind it */
+.closing {
+  background: color-mix(in srgb, var(--surface) 84%, transparent);
+}
+/* on its own (case studies) the footer is the sheet */
+.site-footer {
+  margin-top: 4rem;
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: 1.75rem 1.75rem 0 0;
+}
+@media (min-width: 768px) {
+  .site-footer {
+    border-radius: 2.75rem 2.75rem 0 0;
+  }
+}
+/* under the contact band it continues it instead */
+main:has(#contact) + .site-footer {
+  margin-top: 0;
+  border: 0;
+  border-radius: 0;
+}
+main:has(#contact) + .site-footer .footer-inner {
+  border-top: 1px solid var(--line);
+}

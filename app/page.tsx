@@ -407,7 +407,7 @@ export default function Home() {
 
       {/* ── Contact ───────────────────────────────────────────── */}
       {/* closing band: same surface and glow as the footer below it */}
-      <section id="contact" aria-labelledby="contact-title" className="relative -mb-px overflow-hidden border-t border-line bg-surface">
+      <section id="contact" aria-labelledby="contact-title" className="closing relative -mb-px overflow-hidden rounded-t-[1.75rem] border border-b-0 border-line md:rounded-t-[2.75rem]">
         <div aria-hidden="true" className="contact-glow absolute inset-0" />
         <div className="relative mx-auto max-w-6xl px-5 pb-16 pt-20 md:px-8 md:pb-20 md:pt-28">
           <div className="reveal">

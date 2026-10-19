@@ -64,6 +64,11 @@ export default function ClarityField() {
     let heroH = 0;
     let docH = 0;
     let sectionTops: number[] = [];
+    // at the bottom of the home page the rails turn and fan out across the
+    // closing contact band and footer
+    let turnY = Infinity;
+    let spreads: Float32Array[] = [];
+    let spreadDir = 1;
     let rail = false;
     let railRight = 0;
     let railLeft = 0;
@@ -155,7 +160,46 @@ export default function ClarityField() {
         railXs[k] = x;
       }
       for (let k = 1; k < n - 1; k++) railSlope[k] = (railXs[k + 1] - railXs[k - 1]) / (2 * RES);
+      buildSpreads();
       trace(performance.now());
+    };
+
+    // Each lane bends out of the rail and runs across the page in its own
+    // row; rows open up from a few px apart to an even spread over the
+    // bottom of the page. The lane nearest the content takes the top row so
+    // the curves nest without crossing.
+    const buildSpreads = () => {
+      spreads = [];
+      turnY = Infinity;
+      if (!rail || !document.querySelector("#contact")) return;
+      // the rows fill the space under the contact buttons and the footer
+      const span = Math.min(wide ? 140 : 110, docH * 0.1);
+      const top = docH - span - 14;
+      turnY = top - (wide ? 60 : 44);
+      const x0c = at(railXs, turnY);
+      spreadDir = x0c > vw / 2 ? -1 : 1;
+      const reach = wide ? 160 : 70;
+      const end = spreadDir > 0 ? vw + 20 : -20;
+      for (let lane = 0; lane < lanes; lane++) {
+        const off = laneOffset(lane);
+        const rank = spreadDir > 0 ? lane : lanes - 1 - lane;
+        const fy = top + (rank * span) / Math.max(1, lanes - 1);
+        const p0 = [0, 0];
+        railPoint(turnY, off, p0);
+        const [sx, sy] = p0;
+        const ex = sx + spreadDir * reach;
+        const pts: number[] = [];
+        for (let k = 0; k <= 24; k++) {
+          const u = k / 24;
+          // quadratic: down the rail, then out along the row
+          const a = (1 - u) * (1 - u);
+          const b = 2 * (1 - u) * u;
+          const c = u * u;
+          pts.push(a * sx + b * sx + c * ex, a * sy + b * fy + c * fy);
+        }
+        for (let x = ex + spreadDir * 10; spreadDir * (end - x) > 0; x += spreadDir * 10) pts.push(x, fy);
+        spreads.push(new Float32Array(pts));
+      }
     };
 
     const at = (arr: Float32Array, y: number) => {
@@ -264,7 +308,7 @@ export default function ClarityField() {
       if (rail) {
         // rails: one path, with light drifting down them as you scroll
         const from0 = scrollY - 20;
-        const to = Math.min(docH, scrollY + vh + 20);
+        const to = Math.min(docH, turnY, scrollY + vh + 20);
         const grad = ctx.createLinearGradient(0, 0, 0, vh);
         const band = reduced ? -1 : (((time * 0.00012 + pulseShift * 0.0006) % 1.6) - 0.3);
         grad.addColorStop(0, col.accentSoft);
@@ -295,6 +339,23 @@ export default function ClarityField() {
         ctx.stroke();
       }
 
+      if (spreads.length && turnY - 40 < scrollY + vh) {
+        // fade toward the far edge of the page
+        const g = ctx.createLinearGradient(spreadDir > 0 ? 0 : vw, 0, spreadDir > 0 ? vw : 0, 0);
+        g.addColorStop(0, col.accent);
+        g.addColorStop(0.55, col.accentSoft);
+        g.addColorStop(1, col.glowSoft);
+        ctx.strokeStyle = g;
+        ctx.globalAlpha = 1;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (const sp of spreads) {
+          ctx.moveTo(sp[0], sp[1] - scrollY);
+          for (let k = 1; k < sp.length / 2; k++) ctx.lineTo(sp[k * 2], sp[k * 2 + 1] - scrollY);
+        }
+        ctx.stroke();
+      }
+
       if (reduced) return;
 
       // pulses: a soft halo plus a bright core that fades along its tail
@@ -315,7 +376,7 @@ export default function ClarityField() {
 
         if (rail) {
           const start = pts[(n - 1) * 2 + 1];
-          const length = docH - start;
+          const length = Math.min(docH, turnY) - start;
           const head = start + ((time * 0.11 * seed.speed + pulseShift * seed.speed + seed.phase * length) % length);
           if (head > scrollY - 80 && head - 80 < scrollY + vh) {
             const off = laneOffset(lane);
@@ -323,6 +384,20 @@ export default function ClarityField() {
               railPoint(Math.max(start, head - 80 + (k * 80) / 16), off, out);
               out[1] -= scrollY;
             }, 16);
+          }
+        }
+
+        // data running out along the footer rows
+        const sp = spreads[lane];
+        if (sp && turnY - 40 < scrollY + vh) {
+          const m = sp.length / 2;
+          const head = Math.floor(((time * 0.00011 * seed.speed + seed.phase) % 1) * (m - 1));
+          if (head > 4) {
+            comet((k, out) => {
+              const idx = Math.max(0, head - 14 + k);
+              out[0] = sp[idx * 2];
+              out[1] = sp[idx * 2 + 1] - scrollY;
+            }, 14);
           }
         }
       }
