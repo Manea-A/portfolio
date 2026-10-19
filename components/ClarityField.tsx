@@ -78,15 +78,19 @@ export default function ClarityField() {
     let pulseShift = 0; // extra pulse travel earned by scrolling
     const pointer = { x: -1e4, y: -1e4, tx: -1e4, ty: -1e4 };
 
-    const seeds = Array.from({ length: THREADS }, (_, i) => ({
-      y: (i + Math.random()) / THREADS,
+    // phones use fewer threads and a slimmer rail bundle; see measure()
+    let lanes = THREADS;
+    let wide = true;
+    const seeds = Array.from({ length: THREADS }, () => ({
+      r: Math.random(),
       phase: Math.random(),
       speed: 0.7 + Math.random() * 0.6,
       wobble: Math.random() * 2.4,
     }));
-    // lanes are handed out in entry order so threads never cross once resolved
-    const order = seeds.map((s, i) => [s.y, i] as const).sort((a, b) => a[0] - b[0]);
-    const paths = order.map(() => new Float32Array((MAX_STEPS + BEND) * 2));
+    // lane k is fed by the thread entering k-th from the top, so threads never
+    // cross once resolved
+    let order: (readonly [number, number])[] = [];
+    const paths = seeds.map(() => new Float32Array((MAX_STEPS + BEND) * 2));
     const counts = new Int32Array(THREADS);
 
     const readColors = () => {
@@ -105,10 +109,12 @@ export default function ClarityField() {
       col.glowSoft = rgba(g, 0);
     };
 
+    let lastW = 0;
     const measure = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       vw = window.innerWidth;
       vh = window.innerHeight;
+      lastW = vw;
       canvas.width = Math.round(vw * dpr);
       canvas.height = Math.round(vh * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -123,11 +129,20 @@ export default function ClarityField() {
         .slice(1)
         .map((s) => s.getBoundingClientRect().top + scrollY);
 
+      // wide screens: a full bundle in the empty margin beside the content.
+      // Otherwise a slim bundle inside the page gutter (px-5 / px-8).
       const margin = (vw - CONTENT) / 2;
-      rail = margin >= 96;
-      gap = Math.min(3.2, (margin - 36) / THREADS);
-      railRight = vw - margin / 2;
-      railLeft = margin / 2;
+      wide = margin >= 96;
+      const gutter = wide ? margin : Math.max(margin, 0) + (vw >= 768 ? 32 : 20);
+      lanes = wide ? THREADS : 6;
+      gap = wide ? Math.min(3.2, (margin - 36) / lanes) : Math.min(2, (gutter - 8) / lanes);
+      rail = gutter >= 16;
+      railRight = vw - gutter / 2;
+      railLeft = gutter / 2;
+      order = seeds
+        .slice(0, lanes)
+        .map((sd, i) => [(i + sd.r) / lanes, i] as const)
+        .sort((a, b) => a[0] - b[0]);
 
       // precompute where the rail bundle sits down the whole page: right
       // first, then alternating from the experience section on
@@ -163,7 +178,7 @@ export default function ClarityField() {
     // (7px outside its border) as a closed loop starting where the branch lands.
     const buildTrace = (el: HTMLElement): Trace => {
       const r = docRect(el);
-      const pad = 7;
+      const pad = wide ? 7 : 3;
       const R = 16 + pad;
       const x0 = r.left - pad;
       const y0 = r.top - pad;
@@ -173,16 +188,18 @@ export default function ClarityField() {
       const rx = at(railXs, yb);
       const right = rx > vw / 2;
       const dir = right ? -1 : 1; // from the rail toward the content
-      const startX = rx + (right ? laneOffset(THREADS - 1) : laneOffset(0));
+      const startX = rx + (right ? laneOffset(lanes - 1) : laneOffset(0));
       const entryX = right ? x1 : x0;
+      // the bend can't be wider than the gap it crosses (tight on phones)
+      const bend = Math.max(3, Math.min(30, Math.abs(entryX - startX) * 0.8));
 
       const b: number[] = [];
-      for (let y = yb - 70; y < yb - 30; y += 6) b.push(startX, y);
+      for (let y = yb - 70; y < yb - bend; y += 6) b.push(startX, y);
       for (let k = 0; k <= 8; k++) {
         const a = (k / 8) * (Math.PI / 2);
-        b.push(startX + dir * 30 * (1 - Math.cos(a)), yb - 30 + 30 * Math.sin(a));
+        b.push(startX + dir * bend * (1 - Math.cos(a)), yb - bend + bend * Math.sin(a));
       }
-      for (let x = startX + dir * 36; dir * (entryX - x) > 0; x += dir * 8) b.push(x, yb);
+      for (let x = startX + dir * (bend + 6); dir * (entryX - x) > 0; x += dir * 8) b.push(x, yb);
       b.push(entryX, yb);
 
       // rounded-rect perimeter, clockwise from the top-left end of the top edge
@@ -225,7 +242,7 @@ export default function ClarityField() {
       const k = Math.floor(f);
       return arr[k] + (arr[k + 1] - arr[k]) * (f - k);
     };
-    const laneOffset = (lane: number) => ((THREADS - 1) / 2 - lane) * gap;
+    const laneOffset = (lane: number) => ((lanes - 1) / 2 - lane) * gap;
     // a point on a rail, offset perpendicular to the bundle so the lines keep
     // their spacing through a crossing
     const railPoint = (y: number, off: number, out: number[]) => {
@@ -246,8 +263,8 @@ export default function ClarityField() {
         const wob = t + seeds[i].wobble;
         let x = -20;
         let y = entry * h;
-        const laneY = h * (0.1 + 0.8 * ((lane + 0.5) / THREADS));
-        const endX = rail ? railRight - 90 - (THREADS - lane) * 2.6 : vw + 20;
+        const laneY = h * (0.1 + 0.8 * ((lane + 0.5) / lanes));
+        const endX = rail ? railRight - (wide ? 90 : 40) - (lanes - lane) * (wide ? 2.6 : 5) : vw + 20;
         let n = 0;
         for (; n < MAX_STEPS && x < endX; n++) {
           pts[n * 2] = x;
@@ -327,7 +344,7 @@ export default function ClarityField() {
         ctx.lineWidth = 1;
         ctx.globalAlpha = 0.75;
         ctx.beginPath();
-        for (let lane = 0; lane < THREADS; lane++) {
+        for (let lane = 0; lane < lanes; lane++) {
           const pts = paths[lane];
           ctx.moveTo(pts[0], pts[1] - scrollY);
           for (let k = 1; k < counts[lane]; k++) ctx.lineTo(pts[k * 2], pts[k * 2 + 1] - scrollY);
@@ -352,7 +369,7 @@ export default function ClarityField() {
         ctx.globalAlpha = 1;
         ctx.lineWidth = 1;
         ctx.beginPath();
-        for (let lane = 0; lane < THREADS; lane++) {
+        for (let lane = 0; lane < lanes; lane++) {
           const n = counts[lane];
           const start = Math.max(paths[lane][(n - 1) * 2 + 1], from0);
           if (to <= start) continue;
@@ -375,7 +392,7 @@ export default function ClarityField() {
 
       // pulses: a soft halo plus a bright core that fades along its tail
       ctx.globalCompositeOperation = dark ? "lighter" : "source-over";
-      for (let lane = 0; lane < THREADS; lane++) {
+      for (let lane = 0; lane < lanes; lane++) {
         const seed = seeds[order[lane][1]];
         const pts = paths[lane];
         const n = counts[lane];
@@ -541,6 +558,18 @@ export default function ClarityField() {
     };
     let resizeQueued = 0;
     const onResize = () => {
+      // phones change the height as the address bar shows and hides; only a
+      // width change or a big jump needs a full re-layout
+      if (window.innerWidth === lastW && Math.abs(window.innerHeight - vh) < 160 && docH === document.documentElement.scrollHeight) {
+        if (window.innerHeight > vh) {
+          // grow the canvas so the bottom strip isn't left bare
+          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          vh = window.innerHeight;
+          canvas.height = Math.round(vh * dpr);
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+        return;
+      }
       cancelAnimationFrame(resizeQueued);
       resizeQueued = requestAnimationFrame(() => {
         measure();
