@@ -335,16 +335,12 @@ body {
   isolation: isolate;
   overflow: hidden;
   --glow-strength: 20%;
+  /* no backdrop blur: re-blurring the moving canvas every frame is what
+     made scrolling lag */
   background:
     radial-gradient(ellipse 85% 65% at var(--glow-at), color-mix(in srgb, var(--tint) var(--glow-strength), transparent), transparent 70%),
-    color-mix(in srgb, var(--bg) 86%, transparent);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  transition: --glow-strength 0.4s ease, transform 0.3s, border-color 0.3s, box-shadow 0.3s;
-}
-.card-look:hover {
-  --glow-strength: 32%;
-  border-color: color-mix(in srgb, var(--tint) 35%, var(--line-strong));
+    color-mix(in srgb, var(--bg) 94%, transparent);
+  border-color: color-mix(in srgb, var(--tint) 18%, var(--line));
 }
 .card-look::before {
   content: "";
@@ -355,11 +351,6 @@ body {
   color: var(--tint);
   opacity: 0.22;
   mask-image: radial-gradient(ellipse 80% 70% at var(--glow-at), #000, transparent 75%);
-}
-@property --glow-strength {
-  syntax: "<percentage>";
-  inherits: false;
-  initial-value: 20%;
 }
 .card-look[data-texture="dots"]::before {
   background-image: radial-gradient(currentColor 1px, transparent 1.4px);
@@ -402,13 +393,14 @@ body {
   :root:not([data-theme="light"]) .card-look {
     --glow-strength: 26%;
   }
-  :root:not([data-theme="light"]) .card-look:hover {
-    --glow-strength: 38%;
-  }
 }
 :root[data-theme="dark"] .card-look {
   --glow-strength: 26%;
 }
-:root[data-theme="dark"] .card-look:hover {
-  --glow-strength: 38%;
+
+/* contact band + footer: one closing surface with the accent glow rising
+   from the top right */
+.contact-glow {
+  background:
+    radial-gradient(ellipse 60% 85% at 85% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 75%);
 }

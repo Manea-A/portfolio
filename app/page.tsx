@@ -123,7 +123,7 @@ const look = (p: Project) =>
 
 function WorkCard({ p, priority }: { p: Project; priority: boolean }) {
   return (
-    <article data-trace data-texture={p.texture} style={look(p)} className="card-look reveal group relative flex flex-col rounded-2xl border border-line p-3 transition-all duration-300 hover:-translate-y-1 hover:border-line-strong hover:shadow-[0_24px_48px_-24px_rgba(0,0,0,0.35)] md:p-4">
+    <article data-texture={p.texture} style={look(p)} className="card-look reveal group relative flex flex-col rounded-2xl border border-line p-3 md:p-4">
       <ScrollShot src={p.shot} domain={p.links[0]?.label} alt={`${p.title} live site`} priority={priority} />
       <div className="flex flex-1 flex-col px-2 pb-2 pt-5">
         <div className="flex items-center gap-3">
@@ -309,22 +309,22 @@ export default function Home() {
                 </div>
               </>
             );
-            const cls = "card-look reveal group block rounded-2xl border border-line p-3 transition-all duration-300 md:p-4";
+            const cls = "card-look reveal group block rounded-2xl border border-line p-3 md:p-4";
             return link ? (
               <a
                 key={p.slug}
-                data-trace
+               
                 data-texture={p.texture}
                 style={look(p)}
                 href={link.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`${cls} hover:-translate-y-1 hover:border-line-strong`}
+                className={cls}
               >
                 {body}
               </a>
             ) : (
-              <div key={p.slug} data-trace data-texture={p.texture} style={look(p)} className={cls}>
+              <div key={p.slug} data-texture={p.texture} style={look(p)} className={cls}>
                 {body}
               </div>
             );
@@ -406,11 +406,12 @@ export default function Home() {
       </Section>
 
       {/* ── Contact ───────────────────────────────────────────── */}
-      <section id="contact" aria-labelledby="contact-title" className="border-t border-line">
-        <div className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-28">
-          <div className="reveal relative overflow-hidden rounded-3xl border border-line bg-surface px-6 py-14 md:px-14 md:py-20">
-            <div aria-hidden="true" className="hero-glow absolute inset-0" />
-            <div className="relative">
+      {/* closing band: same surface and glow as the footer below it */}
+      <section id="contact" aria-labelledby="contact-title" className="relative -mb-px overflow-hidden border-t border-line bg-surface">
+        <div aria-hidden="true" className="contact-glow absolute inset-0" />
+        <div className="relative mx-auto max-w-6xl px-5 pb-16 pt-20 md:px-8 md:pb-20 md:pt-28">
+          <div className="reveal">
+            <div>
               <p className="meta text-muted">{"{ 05 } Contact"}</p>
               <h2 id="contact-title" className="mt-3 max-w-2xl text-4xl font-semibold tracking-[-0.03em] md:text-6xl">
                 Let&apos;s build something that lasts.
