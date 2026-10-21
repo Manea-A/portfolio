@@ -13,8 +13,8 @@ import { useEffect, useRef } from "react";
  * other side at each section.
  *
  * Light moves through it: a soft sheen sweeps along the lines, and glowing
- * pulses with fading tails travel the threads and race down the rails while
- * you scroll.
+ * pulses with fading tails travel the threads and flow down the rails at
+ * their own steady pace.
  *
  * Cheap by design: the rail path is precomputed per layout, hero threads are
  * built once per layout and drawn from one cached path, and nothing runs
@@ -80,7 +80,6 @@ export default function ClarityField() {
     let ny = new Float32Array(0);
 
     let scrollY = window.scrollY;
-    let pulseShift = 0; // extra pulse travel earned by scrolling
 
     // phones use fewer threads and a slimmer rail bundle; see measure()
     let lanes = THREADS;
@@ -391,7 +390,7 @@ export default function ClarityField() {
         const from0 = scrollY - 20;
         const to = Math.min(docH, turnY, scrollY + vh + 20);
         const grad = ctx.createLinearGradient(0, 0, 0, vh);
-        const band = reduced ? -1 : (((time * 0.00012 + pulseShift * 0.0006) % 1.6) - 0.3);
+        const band = reduced ? -1 : (((time * 0.00006) % 1.6) - 0.3);
         grad.addColorStop(0, col.accentSoft);
         if (band > 0.05 && band < 0.95) {
           grad.addColorStop(band - 0.05, col.accentSoft);
@@ -462,13 +461,17 @@ export default function ClarityField() {
           const s0 = idxAt(pts[(n - 1) * 2 + 1]);
           const s1 = idxAt(Math.min(docH, turnY));
           const length = s1 - s0;
+          // a steady flow: pulses every ~1700px of rail, each moving at its
+          // lane's own pace, independent of scrolling
+          const every = Math.round((wide ? 1700 : 1100) / SAMPLE);
           if (length > 30) {
-            const head = s0 + Math.floor((time * 0.11 * seed.speed + pulseShift * seed.speed) / SAMPLE + seed.phase * length) % length;
-            const hy = cy[head];
-            if (hy > scrollY - 80 && hy - 80 < scrollY + vh) {
-              const off = laneOffset(lane);
+            const off = laneOffset(lane);
+            const shift = Math.floor((time * 0.06 * seed.speed) / SAMPLE + seed.phase * every) % every;
+            for (let head = s0 + shift; head < s1; head += every) {
+              const hy = cy[head];
+              if (head - s0 < 26 || hy < scrollY - 80 || hy - 80 > scrollY + vh) continue;
               comet((k, out) => {
-                lanePoint(Math.max(s0, head - 26 + Math.round((k * 26) / 16)), off, out);
+                lanePoint(head - 26 + Math.round((k * 26) / 16), off, out);
                 out[1] -= scrollY;
               }, 16);
             }
@@ -552,7 +555,6 @@ export default function ClarityField() {
 
     const onScroll = () => {
       const y = window.scrollY;
-      pulseShift += Math.abs(y - scrollY) * 1.4;
       scrollY = y;
       if (reduced) draw(0);
     };

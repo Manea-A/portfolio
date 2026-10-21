@@ -180,7 +180,26 @@ export default function Home() {
         <div aria-hidden="true" className="absolute inset-0 overflow-hidden">
           <div className="grain" />
         </div>
-        <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-5 pb-24 pt-14 md:px-8 md:pt-20 lg:grid-cols-[1.05fr_1fr] lg:pb-32">
+        <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-5 pb-20 pt-8 md:px-8 md:pt-10 lg:grid-cols-[1.05fr_1fr] lg:pb-28">
+          {/* the idea behind the background, drawn by hand: a scribble that
+              straightens into an arrow */}
+          <p className="motto rise rise-1 flex items-center gap-3 text-lg md:gap-4 md:text-2xl lg:col-span-2">
+            <span className="font-serif italic text-muted">complexity</span>
+            <span aria-hidden="true" className="flex flex-1 items-center">
+              <svg viewBox="0 0 92 36" className="motto-scribble h-8 w-[4.5rem] shrink-0 overflow-visible md:h-10 md:w-24">
+                <path
+                  pathLength="1"
+                  d="M2 22C10 4 22 4 20 18C18 32 6 26 14 12C22 0 36 6 32 20C28 34 18 26 28 14C38 2 50 10 46 22C42 32 36 22 50 18C60 15 66 26 74 20C80 15 85 18 92 18"
+                />
+              </svg>
+              <span className="motto-line h-[2px] flex-1" />
+              <svg viewBox="0 0 10 12" className="motto-head h-3 w-2.5 shrink-0 overflow-visible">
+                <path d="M1 1L9 6L1 11" />
+              </svg>
+            </span>
+            <span className="font-serif italic text-accent">clarity</span>
+            <span className="sr-only">: turning complex systems into clear products</span>
+          </p>
           <div>
             <div className="rise rise-2">
               <LiquidTitle
@@ -238,18 +257,6 @@ export default function Home() {
           <div className="rise rise-3">
             <HeroShowcase cards={showcase} />
           </div>
-        </div>
-        {/* names the two ends of the background: tangle on the left, lanes on the right */}
-        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-6 mx-auto flex max-w-6xl items-center gap-4 px-5 md:px-8">
-          <span className="meta whitespace-nowrap text-muted">
-            <span className="sm:hidden">{"{ complex }"}</span>
-            <span className="hidden sm:inline">{"{ complex systems }"}</span>
-          </span>
-          <span className="clarity-arrow h-px flex-1" />
-          <span className="meta whitespace-nowrap text-accent">
-            <span className="sm:hidden">{"{ clear }"}</span>
-            <span className="hidden sm:inline">{"{ clear, ready-to-use products }"}</span>
-          </span>
         </div>
       </section>
 
