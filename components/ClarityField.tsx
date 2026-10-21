@@ -27,8 +27,7 @@ const MAX_STEPS = 320;
 const BEND = 16; // points in the bend from lane to rail
 const CONTENT = 1152; // max-w-6xl
 const TURN = 170; // px a lane takes to bend from horizontal to vertical
-const CROSS = 300; // px a rail takes to cross to the other side
-const RES = 4; // px resolution of the precomputed rail path
+const SAMPLE = 3; // px between samples along the rail centreline
 const TAIL = 18; // points in a hero pulse's tail
 
 const smooth = (a: number, b: number, v: number) => {
@@ -73,8 +72,12 @@ export default function ClarityField() {
     let railRight = 0;
     let railLeft = 0;
     let gap = 3.2;
-    let railXs = new Float32Array(0); // rail centre x every RES px of the page
-    let railSlope = new Float32Array(0);
+    // rail centreline down the whole page, sampled every SAMPLE px, with a
+    // unit normal at each sample (lanes are offsets along it)
+    let cx = new Float32Array(0);
+    let cy = new Float32Array(0);
+    let nx = new Float32Array(0);
+    let ny = new Float32Array(0);
 
     let scrollY = window.scrollY;
     let pulseShift = 0; // extra pulse travel earned by scrolling
@@ -145,21 +148,7 @@ export default function ClarityField() {
         .map((sd, i) => [(i + sd.r) / lanes, i] as const)
         .sort((a, b) => a[0] - b[0]);
 
-      // precompute where the rail bundle sits down the whole page: right
-      // first, then alternating from the experience section on
-      const n = Math.ceil(docH / RES) + 2;
-      railXs = new Float32Array(n);
-      railSlope = new Float32Array(n);
-      for (let k = 0; k < n; k++) {
-        const y = k * RES;
-        let x = railRight;
-        sectionTops.forEach((top, s) => {
-          const side = s < 2 ? railRight : s % 2 === 0 ? railLeft : railRight;
-          x += (side - x) * smooth(top - CROSS / 2, top + CROSS / 2, y);
-        });
-        railXs[k] = x;
-      }
-      for (let k = 1; k < n - 1; k++) railSlope[k] = (railXs[k + 1] - railXs[k - 1]) / (2 * RES);
+      buildRail();
       buildSpreads();
       trace(performance.now());
     };
@@ -176,7 +165,7 @@ export default function ClarityField() {
       const span = Math.min(wide ? 140 : 110, docH * 0.1);
       const top = docH - span - 14;
       turnY = top - (wide ? 60 : 44);
-      const x0c = at(railXs, turnY);
+      const x0c = cx[idxAt(turnY)];
       spreadDir = x0c > vw / 2 ? -1 : 1;
       const reach = wide ? 160 : 70;
       const end = spreadDir > 0 ? vw + 20 : -20;
@@ -185,7 +174,7 @@ export default function ClarityField() {
         const rank = spreadDir > 0 ? lane : lanes - 1 - lane;
         const fy = top + (rank * span) / Math.max(1, lanes - 1);
         const p0 = [0, 0];
-        railPoint(turnY, off, p0);
+        lanePoint(idxAt(turnY), off, p0);
         const [sx, sy] = p0;
         const ex = sx + spreadDir * reach;
         const pts: number[] = [];
@@ -202,19 +191,84 @@ export default function ClarityField() {
       }
     };
 
-    const at = (arr: Float32Array, y: number) => {
-      const f = Math.min(Math.max(y / RES, 0), arr.length - 1.001);
-      const k = Math.floor(f);
-      return arr[k] + (arr[k + 1] - arr[k]) * (f - k);
+    /*
+     * The rail runs down one side of the page and, where a section changes
+     * side, crosses like a line on a transit map: a quarter circle, a
+     * straight run along the section divider, and a quarter circle back
+     * down. Each lane is the centreline offset along its normal, so every
+     * lane is a concentric curve and the spacing never pinches.
+     */
+    const buildRail = () => {
+      const R = wide ? 140 : 36;
+      const xs: number[] = [];
+      const ys: number[] = [];
+      let x = railRight;
+      let y = 0;
+      const lineTo = (x2: number, y2: number) => {
+        const d = Math.hypot(x2 - x, y2 - y);
+        const n = Math.max(1, Math.ceil(d / SAMPLE));
+        for (let k = 1; k <= n; k++) {
+          xs.push(x + ((x2 - x) * k) / n);
+          ys.push(y + ((y2 - y) * k) / n);
+        }
+        x = x2;
+        y = y2;
+      };
+      const arc = (ox: number, oy: number, f: (t: number) => [number, number]) => {
+        const n = Math.ceil((Math.PI / 2) * R / SAMPLE);
+        for (let k = 1; k <= n; k++) {
+          const [dx, dy] = f((k / n) * (Math.PI / 2));
+          xs.push(ox + dx * R);
+          ys.push(oy + dy * R);
+        }
+        x = xs[xs.length - 1];
+        y = ys[ys.length - 1];
+      };
+      xs.push(x);
+      ys.push(y);
+      sectionTops.forEach((top, s) => {
+        const side = s < 2 ? railRight : s % 2 === 0 ? railLeft : railRight;
+        if (Math.abs(side - x) < 1 || top - R < y + 4) return;
+        const dir = Math.sign(side - x);
+        const xa = x;
+        lineTo(xa, top - R);
+        arc(xa + dir * R, top - R, (t) => [-dir * Math.cos(t), Math.sin(t)]);
+        lineTo(side - dir * R, top);
+        arc(side - dir * R, top + R, (t) => [dir * Math.sin(t), -Math.cos(t)]);
+      });
+      lineTo(x, docH + 40);
+
+      const n = xs.length;
+      cx = new Float32Array(xs);
+      cy = new Float32Array(ys);
+      nx = new Float32Array(n);
+      ny = new Float32Array(n);
+      for (let k = 0; k < n; k++) {
+        const a = Math.max(0, k - 1);
+        const b = Math.min(n - 1, k + 1);
+        const tx = cx[b] - cx[a];
+        const ty = cy[b] - cy[a];
+        const len = Math.hypot(tx, ty) || 1;
+        // normal (ty, -tx): +x on a downward run, matching laneOffset
+        nx[k] = ty / len;
+        ny[k] = -tx / len;
+      }
+    };
+    // first centreline sample at or below document y (y never decreases)
+    const idxAt = (y: number) => {
+      let lo = 0;
+      let hi = cy.length - 1;
+      while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (cy[mid] < y) lo = mid + 1;
+        else hi = mid;
+      }
+      return lo;
     };
     const laneOffset = (lane: number) => ((lanes - 1) / 2 - lane) * gap;
-    // a point on a rail, offset perpendicular to the bundle so the lines keep
-    // their spacing through a crossing
-    const railPoint = (y: number, off: number, out: number[]) => {
-      const s = at(railSlope, y);
-      const len = Math.hypot(s, 1);
-      out[0] = at(railXs, y) + off / len;
-      out[1] = y - (off * s) / len;
+    const lanePoint = (k: number, off: number, out: number[]) => {
+      out[0] = cx[k] + nx[k] * off;
+      out[1] = cy[k] + ny[k] * off;
     };
 
     // trace every hero thread (document coordinates) into `paths`
@@ -327,14 +381,16 @@ export default function ClarityField() {
           const start = Math.max(paths[lane][(n - 1) * 2 + 1], from0);
           if (to <= start) continue;
           const off = laneOffset(lane);
-          let y = start;
-          railPoint(y, off, p);
+          const k0 = idxAt(start);
+          const k1 = Math.min(cx.length - 1, idxAt(to));
+          lanePoint(k0, off, p);
           ctx.moveTo(p[0], p[1] - scrollY);
-          while (y < to) {
-            y += 9 / Math.max(1, Math.abs(at(railSlope, y)));
-            railPoint(y, off, p);
+          for (let k = k0 + 2; k <= k1; k += 2) {
+            lanePoint(k, off, p);
             ctx.lineTo(p[0], p[1] - scrollY);
           }
+          lanePoint(k1, off, p);
+          ctx.lineTo(p[0], p[1] - scrollY);
         }
         ctx.stroke();
       }
@@ -375,15 +431,20 @@ export default function ClarityField() {
         }
 
         if (rail) {
-          const start = pts[(n - 1) * 2 + 1];
-          const length = Math.min(docH, turnY) - start;
-          const head = start + ((time * 0.11 * seed.speed + pulseShift * seed.speed + seed.phase * length) % length);
-          if (head > scrollY - 80 && head - 80 < scrollY + vh) {
-            const off = laneOffset(lane);
-            comet((k, out) => {
-              railPoint(Math.max(start, head - 80 + (k * 80) / 16), off, out);
-              out[1] -= scrollY;
-            }, 16);
+          // in centreline samples, so the pulse follows crossings at an even pace
+          const s0 = idxAt(pts[(n - 1) * 2 + 1]);
+          const s1 = idxAt(Math.min(docH, turnY));
+          const length = s1 - s0;
+          if (length > 30) {
+            const head = s0 + Math.floor((time * 0.11 * seed.speed + pulseShift * seed.speed) / SAMPLE + seed.phase * length) % length;
+            const hy = cy[head];
+            if (hy > scrollY - 80 && hy - 80 < scrollY + vh) {
+              const off = laneOffset(lane);
+              comet((k, out) => {
+                lanePoint(Math.max(s0, head - 26 + Math.round((k * 26) / 16)), off, out);
+                out[1] -= scrollY;
+              }, 16);
+            }
           }
         }
 
