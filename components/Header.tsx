@@ -14,7 +14,23 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg/85 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-4 px-5 md:px-8">
-        <Link href="/" className="whitespace-nowrap font-semibold tracking-tight">
+        <Link href="/" className="flex items-center gap-2.5 whitespace-nowrap font-semibold tracking-tight">
+          {/* same mark as the tab icon: tangled lines resolving into lanes */}
+          <svg viewBox="0 0 64 64" width="26" height="26" aria-hidden="true" className="shrink-0">
+            <defs>
+              <linearGradient id="mark-lanes" x1="8" y1="0" x2="56" y2="0" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stopColor="#8a8b94" />
+                <stop offset="0.5" stopColor="#c9d4ff" />
+                <stop offset="1" stopColor="#8eaaff" />
+              </linearGradient>
+            </defs>
+            <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="14" fill="#141416" stroke="rgba(255,255,255,0.14)" strokeWidth="1.5" />
+            <g fill="none" stroke="url(#mark-lanes)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 45C21 45 21 21 35 21H55" />
+              <path d="M9 19C21 19 21 43 35 43H55" />
+              <path d="M11 32C13 19 26 19 23 29C21 36 28 32 35 32H55" />
+            </g>
+          </svg>
           Manea Abdullah
         </Link>
         <nav aria-label="Primary">

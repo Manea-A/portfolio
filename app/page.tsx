@@ -117,13 +117,9 @@ function Section({
   );
 }
 
-/* per-card glow colour and origin, read by .card-look in globals.css */
-const look = (p: Project) =>
-  ({ "--tint": p.tint ?? "var(--accent)", "--glow-at": p.glow ?? "100% 0%" }) as React.CSSProperties;
-
 function WorkCard({ p, priority }: { p: Project; priority: boolean }) {
   return (
-    <article data-texture={p.texture} style={look(p)} className="card-look reveal group relative flex flex-col rounded-2xl border border-line p-3 md:p-4">
+    <article className="card-look reveal group relative flex flex-col rounded-2xl border border-line p-3 md:p-4">
       <ScrollShot src={p.shot} domain={p.links[0]?.label} alt={`${p.title} live site`} priority={priority} />
       <div className="flex flex-1 flex-col px-2 pb-2 pt-5">
         <div className="flex items-center gap-3">
@@ -314,8 +310,6 @@ export default function Home() {
               <a
                 key={p.slug}
                
-                data-texture={p.texture}
-                style={look(p)}
                 href={link.href}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -324,7 +318,7 @@ export default function Home() {
                 {body}
               </a>
             ) : (
-              <div key={p.slug} data-texture={p.texture} style={look(p)} className={cls}>
+              <div key={p.slug} className={cls}>
                 {body}
               </div>
             );
