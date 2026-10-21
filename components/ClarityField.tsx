@@ -344,6 +344,8 @@ export default function ClarityField() {
     // tangled left, accent once resolved). Repainted on layout/theme change.
     let heroImg: HTMLCanvasElement | null = null;
     let heroImgTop = 0;
+    // the hero copy's box (document coords); pulses don't pass through it
+    let quiet = { x0: 0, x1: 0, y0: 0, y1: 0 };
     const paintHero = () => {
       const dpr = canvas.width / vw;
       let maxY = heroTop + heroH;
@@ -364,6 +366,29 @@ export default function ClarityField() {
       g.lineJoin = "round";
       g.globalAlpha = 0.75;
       g.stroke(heroPath);
+      // quiet zone: fade the lines softly behind the hero copy so it reads
+      // cleanly, while the knot still shows around it
+      const copy = document.querySelector<HTMLElement>("[data-hero-copy]");
+      if (copy) {
+        const r = copy.getBoundingClientRect();
+        quiet = { x0: r.left - 30, x1: r.right + 30, y0: r.top + scrollY - 30, y1: r.bottom + scrollY + 30 };
+        const cxm = r.left + r.width / 2;
+        const cym = r.top + scrollY + r.height / 2;
+        const rx = r.width * 0.68;
+        const ry = r.height * 0.62;
+        g.save();
+        g.globalAlpha = 1;
+        g.globalCompositeOperation = "destination-out";
+        g.translate(cxm, cym);
+        g.scale(rx / ry, 1);
+        const q = g.createRadialGradient(0, 0, 0, 0, 0, ry);
+        q.addColorStop(0, "rgba(0,0,0,0.85)");
+        q.addColorStop(0.65, "rgba(0,0,0,0.75)");
+        q.addColorStop(1, "rgba(0,0,0,0)");
+        g.fillStyle = q;
+        g.fillRect(-ry, -ry, ry * 2, ry * 2);
+        g.restore();
+      }
       heroImg = img;
     };
 
@@ -447,8 +472,11 @@ export default function ClarityField() {
         const pts = paths[lane];
         const n = counts[lane];
 
-        if (heroVisible && n > TAIL) {
+        if (heroVisible && n > TAIL) heroComet: {
           const head = Math.floor(((time * 0.00005 * seed.speed + seed.phase) % 1) * (n - 1));
+          const hx = pts[head * 2];
+          const hy = pts[head * 2 + 1];
+          if (hx > quiet.x0 && hx < quiet.x1 && hy > quiet.y0 && hy < quiet.y1) break heroComet;
           comet((k, out) => {
             const idx = Math.max(0, head - TAIL + k);
             out[0] = pts[idx * 2];
