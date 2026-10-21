@@ -180,7 +180,7 @@ export default function Home() {
         <div aria-hidden="true" className="absolute inset-0 overflow-hidden">
           <div className="grain" />
         </div>
-        <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-5 pb-20 pt-14 md:px-8 md:pt-20 lg:grid-cols-[1.05fr_1fr] lg:pb-28">
+        <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-5 pb-24 pt-14 md:px-8 md:pt-20 lg:grid-cols-[1.05fr_1fr] lg:pb-32">
           <div>
             <div className="rise rise-2">
               <LiquidTitle
@@ -206,9 +206,9 @@ export default function Home() {
               {"{"} Senior Software Engineer · Technical Lead · Software Architect {"}"}
             </p>
             <p className="rise rise-4 mt-6 max-w-xl text-lg leading-relaxed">
-              I design, build, and ship production software end to end:
-              multi-tenant SaaS, real-time telehealth, marketplaces, and AI for
-              industrial operations. Most recently Software Engineering Lead at
+              I turn complex systems into clear, reliable products, designed,
+              built, and shipped end to end: multi-tenant SaaS, real-time
+              telehealth, marketplaces, and AI for industrial operations. Most recently Software Engineering Lead at
               AIP; Lead Software Architect at ISOPluss, which I co-founded.
             </p>
             <div className="rise rise-5 mt-9 flex flex-wrap items-center gap-3">
@@ -238,6 +238,18 @@ export default function Home() {
           <div className="rise rise-3">
             <HeroShowcase cards={showcase} />
           </div>
+        </div>
+        {/* names the two ends of the background: tangle on the left, lanes on the right */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-6 mx-auto flex max-w-6xl items-center gap-4 px-5 md:px-8">
+          <span className="meta whitespace-nowrap text-muted">
+            <span className="sm:hidden">{"{ complex }"}</span>
+            <span className="hidden sm:inline">{"{ complex systems }"}</span>
+          </span>
+          <span className="clarity-arrow h-px flex-1" />
+          <span className="meta whitespace-nowrap text-accent">
+            <span className="sm:hidden">{"{ clear }"}</span>
+            <span className="hidden sm:inline">{"{ clear, ready-to-use products }"}</span>
+          </span>
         </div>
       </section>
 

@@ -368,3 +368,21 @@ main:has(#contact) + .site-footer {
 main:has(#contact) + .site-footer .footer-inner {
   border-top: 1px solid var(--line);
 }
+
+/* hero legend: a line that goes from muted (complex) to accent (clear),
+   ending in an arrow head */
+.clarity-arrow {
+  position: relative;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--muted) 40%, transparent), var(--accent));
+}
+.clarity-arrow::after {
+  content: "";
+  position: absolute;
+  right: -1px;
+  top: -3px;
+  width: 7px;
+  height: 7px;
+  border-top: 1px solid var(--accent);
+  border-right: 1px solid var(--accent);
+  transform: rotate(45deg);
+}

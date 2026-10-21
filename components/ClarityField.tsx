@@ -17,13 +17,13 @@ import { useEffect, useRef } from "react";
  * you scroll.
  *
  * Cheap by design: the rail path is precomputed per layout, hero threads are
- * re-traced every other frame, and nothing runs while the tab is hidden.
+ * built once per layout and drawn from one cached path, and nothing runs
+ * while the tab is hidden.
  * Narrow screens keep the hero part only; reduced motion draws still frames.
  */
 
 const THREADS = 26;
-const STEP = 9; // px per integration step in the hero
-const MAX_STEPS = 320;
+const MAX_STEPS = 640; // points per hero thread
 const BEND = 16; // points in the bend from lane to rail
 const CONTENT = 1152; // max-w-6xl
 const TURN = 170; // px a lane takes to bend from horizontal to vertical
@@ -111,6 +111,7 @@ export default function ClarityField() {
       col.accentSoft = rgba(a, 0.3);
       col.glow = rgba(g, 1);
       col.glowSoft = rgba(g, 0);
+      heroImg = null;
     };
 
     let lastW = 0;
@@ -150,7 +151,7 @@ export default function ClarityField() {
 
       buildRail();
       buildSpreads();
-      trace(performance.now());
+      trace();
     };
 
     // Each lane bends out of the rail and runs across the page in its own
@@ -271,55 +272,100 @@ export default function ClarityField() {
       out[1] = cy[k] + ny[k] * off;
     };
 
-    // trace every hero thread (document coordinates) into `paths`
-    const trace = (time: number) => {
-      const t = time * 0.00009;
+    /*
+     * Build every hero thread once per layout (document coordinates). Each
+     * thread scribbles in loose loops inside a knot on the left, the loops
+     * shrink as it travels right, it leaves as one line with a soft fading
+     * wave, settles into its lane and bends down into the rail. The shape
+     * is fixed; only the light moving along it animates.
+     */
+    let heroPath = new Path2D();
+    const rand = (k: number) => {
+      const v = Math.sin(k * 127.1 + 311.7) * 43758.5453;
+      return v - Math.floor(v);
+    };
+    const trace = () => {
       const h = heroH;
+      const kx = vw * (wide ? 0.12 : 0.18);
+      const knotW = vw * (wide ? 0.16 : 0.3);
+      heroPath = new Path2D();
+      heroImg = null;
       order.forEach(([entry, i], lane) => {
         const pts = paths[lane];
-        const wob = t + seeds[i].wobble;
-        let x = -20;
-        let y = entry * h;
+        const r = (k: number) => rand(i * 13 + k);
         const laneY = h * (0.1 + 0.8 * ((lane + 0.5) / lanes));
         const endX = rail ? railRight - (wide ? 90 : 40) - (lanes - lane) * (wide ? 2.6 : 5) : vw + 20;
+        // this thread's place in the knot and the shape of its loops
+        const ky = h * (0.5 + (entry - 0.5) * 0.55);
+        const amp = h * (0.1 + 0.16 * r(1)) * (wide ? 1 : 0.8);
+        const loops = 6 + Math.floor(r(2) * 6);
+        const p1 = r(3) * 6.283;
+        const p2 = r(4) * 6.283;
+        const p3 = r(5) * 6.283;
+        const startX = -amp - 30;
         let n = 0;
-        for (; n < MAX_STEPS && x < endX; n++) {
+        for (; n < MAX_STEPS; n++) {
+          const u = n / (MAX_STEPS - 1);
+          // most of the length is spent inside the knot, then it travels
+          const travel = smooth(0.5, 1, u);
+          const bx = startX + (kx + knotW - startX) * Math.min(u / 0.5, 1) * (1 - travel) + travel * endX;
+          const chaos = 1 - smooth(0.38, 0.66, u);
+          const wave = (1 - smooth(0.6, 0.92, u)) * (1 - chaos);
+          const by = ky + (laneY - ky) * smooth(0.45, 0.88, u);
+          const a = u * loops * 6.283;
+          const wobble = 0.65 + 0.35 * Math.sin(u * 9.1 + p3);
+          const x = bx + Math.sin(a + p1) * amp * 0.9 * wobble * chaos;
+          const y = by + Math.cos(a * 1.07 + p2) * amp * wobble * chaos + Math.sin(u * 40 + p3) * 12 * wave;
           pts[n * 2] = x;
           pts[n * 2 + 1] = y + heroTop;
-          // 1 = tangled, 0 = resolved
-          const chaos = 1 - smooth(vw * 0.04, vw * 0.58, x);
-          let vx = 0.8 + (1 - chaos) * 1.2;
-          let vy = Math.max(-1, Math.min(1, (laneY - y) * 0.03)) * (1 - chaos);
-          if (chaos > 0.01) {
-            // one slow octave of curl noise: wide, loose loops
-            const s1 = x * 0.0043 + wob;
-            const s2 = y * 0.0052 - wob * 0.8;
-            const s3 = (x * 0.6 - y) * 0.0029 + wob * 1.2;
-            vx += (-0.0052 * Math.sin(s1) * Math.sin(s2) - 0.0017 * Math.cos(s3)) * 330 * chaos;
-            vy += -(0.0043 * Math.cos(s1) * Math.cos(s2) + 0.001 * Math.cos(s3)) * 330 * chaos;
-          }
-          const len = Math.hypot(vx, vy) || 1;
-          x += (vx / len) * STEP;
-          y += (vy / len) * STEP;
         }
         if (rail) {
           // bend down into this lane's rail
-          const x0 = x;
-          const y0 = y + heroTop;
+          const x0 = pts[(n - 1) * 2];
+          const y0 = pts[(n - 1) * 2 + 1];
           const x3 = railRight + laneOffset(lane);
           for (let k = 1; k <= BEND; k++) {
             const u = k / BEND;
-            const b = 3 * (1 - u) ** 2 * u;
+            const b2 = 3 * (1 - u) ** 2 * u;
             const c = 3 * (1 - u) * u * u;
             const d = u ** 3;
-            const a = (1 - u) ** 3;
-            pts[n * 2] = a * x0 + b * (x0 + (x3 - x0) * 0.75) + (c + d) * x3;
-            pts[n * 2 + 1] = (a + b) * y0 + c * (y0 + TURN * 0.35) + d * (y0 + TURN);
+            const a2 = (1 - u) ** 3;
+            pts[n * 2] = a2 * x0 + b2 * (x0 + (x3 - x0) * 0.75) + (c + d) * x3;
+            pts[n * 2 + 1] = (a2 + b2) * y0 + c * (y0 + TURN * 0.35) + d * (y0 + TURN);
             n++;
           }
         }
         counts[lane] = n;
+        heroPath.moveTo(pts[0], pts[1]);
+        for (let k = 1; k < n; k++) heroPath.lineTo(pts[k * 2], pts[k * 2 + 1]);
       });
+    };
+
+    // Paint the fixed hero lines once into an offscreen bitmap (grey on the
+    // tangled left, accent once resolved). Repainted on layout/theme change.
+    let heroImg: HTMLCanvasElement | null = null;
+    let heroImgTop = 0;
+    const paintHero = () => {
+      const dpr = canvas.width / vw;
+      let maxY = heroTop + heroH;
+      for (let lane = 0; lane < lanes; lane++) maxY = Math.max(maxY, paths[lane][(counts[lane] - 1) * 2 + 1]);
+      heroImgTop = heroTop - 60;
+      const img = document.createElement("canvas");
+      img.width = canvas.width;
+      img.height = Math.ceil((maxY + 20 - heroImgTop) * dpr);
+      const g = img.getContext("2d")!;
+      g.setTransform(dpr, 0, 0, dpr, 0, -heroImgTop * dpr);
+      const grad = g.createLinearGradient(0, 0, vw, 0);
+      grad.addColorStop(0, col.mutedSoft);
+      grad.addColorStop(0.3, col.muted);
+      grad.addColorStop(0.72, col.accent);
+      grad.addColorStop(1, col.accent);
+      g.strokeStyle = grad;
+      g.lineWidth = 1;
+      g.lineJoin = "round";
+      g.globalAlpha = 0.75;
+      g.stroke(heroPath);
+      heroImg = img;
     };
 
     const p = [0, 0];
@@ -328,35 +374,16 @@ export default function ClarityField() {
       ctx.lineJoin = "round";
       ctx.lineCap = "round";
       const heroVisible = heroTop + heroH + TURN > scrollY;
-      // a band of light sweeping left to right along the hero threads
-      const sweep = reduced ? -1 : ((time * 0.00005) % 1.4) - 0.2;
 
       if (heroVisible) {
-        const grad = ctx.createLinearGradient(0, 0, vw, 0);
-        const stops: [number, string][] = [
-          [0, col.mutedSoft],
-          [0.3, col.muted],
-          [0.72, col.accent],
-          [1, col.accent],
-        ];
-        if (sweep > 0.02 && sweep < 0.98) {
-          const base = sweep < 0.5 ? col.muted : col.accent;
-          stops.push([sweep - 0.06, base], [sweep, col.glow], [sweep + 0.06, base]);
-        }
-        stops
-          .filter(([o]) => o >= 0 && o <= 1)
-          .sort((a, b) => a[0] - b[0])
-          .forEach(([o, c]) => grad.addColorStop(o, c));
-        ctx.strokeStyle = grad;
-        ctx.lineWidth = 1;
-        ctx.globalAlpha = 0.75;
-        ctx.beginPath();
-        for (let lane = 0; lane < lanes; lane++) {
-          const pts = paths[lane];
-          ctx.moveTo(pts[0], pts[1] - scrollY);
-          for (let k = 1; k < counts[lane]; k++) ctx.lineTo(pts[k * 2], pts[k * 2 + 1] - scrollY);
-        }
-        ctx.stroke();
+        if (!heroImg) paintHero();
+        const dpr = canvas.width / vw;
+        // the hero lines are a cached bitmap; draw it at device pixels
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.globalAlpha = 1;
+        ctx.drawImage(heroImg!, 0, Math.round((heroImgTop - scrollY) * dpr));
+        ctx.restore();
       }
 
       if (rail) {
@@ -506,8 +533,7 @@ export default function ClarityField() {
     const loop = (time: number) => {
       frame++;
       const heroVisible = heroTop + heroH + TURN > scrollY;
-      // re-trace the hero every other frame; below it only every 4th frame draws
-      if (heroVisible && frame % 2 === 0) trace(time);
+      // full rate while the hero is on screen, every other frame below it
       if (heroVisible || frame % 2 === 0) draw(time);
       raf = requestAnimationFrame(loop);
     };
