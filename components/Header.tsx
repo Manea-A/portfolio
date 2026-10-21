@@ -13,10 +13,10 @@ const nav = [
 export default function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg/85 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-4 px-5 md:px-8">
-        <Link href="/" className="flex items-center gap-2.5 whitespace-nowrap font-semibold tracking-tight">
+      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-3 px-4 sm:px-5 md:px-8">
+        <Link href="/" className="flex items-center gap-2 whitespace-nowrap font-semibold tracking-tight sm:gap-2.5">
           {/* same mark as the tab icon: tangled lines resolving into lanes */}
-          <svg viewBox="0 0 64 64" width="26" height="26" aria-hidden="true" className="shrink-0">
+          <svg viewBox="0 0 64 64" width="24" height="24" aria-hidden="true" className="shrink-0">
             <defs>
               <linearGradient id="mark-lanes" x1="8" y1="0" x2="56" y2="0" gradientUnits="userSpaceOnUse">
                 <stop offset="0" stopColor="#8a8b94" />
@@ -34,9 +34,9 @@ export default function Header() {
           Manea Abdullah
         </Link>
         <nav aria-label="Primary">
-          <ul className="flex items-center gap-3.5 text-sm sm:gap-5 md:gap-7">
+          <ul className="flex items-center gap-3 text-sm sm:gap-5 md:gap-7">
             {nav.map((item) => (
-              <li key={item.href} className={item.mobile ? "" : "hidden sm:block"}>
+              <li key={item.href} className={item.mobile ? (item.label === "Work" ? "max-[379px]:hidden" : "") : "hidden sm:block"}>
                 <Link href={item.href} className="text-muted transition-colors hover:text-fg">
                   {item.label}
                 </Link>
