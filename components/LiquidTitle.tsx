@@ -53,19 +53,19 @@ const DRAW_FRAG = `
 precision highp float;
 varying vec2 vUv;
 uniform sampler2D uText, uSim;
+uniform vec3 uTint;
 void main() {
   vec4 s = texture2D(uSim, vUv);
   vec2 disp = (s.rg - .5) * vec2(.2, .26) * s.b;
   vec2 uv = vUv - disp;
   vec2 ca = disp * .55;
   vec4 c = texture2D(uText, uv);
-  float r = texture2D(uText, uv + ca).a;
-  float b = texture2D(uText, uv - ca).a;
-  // premultiplied: tint the split edges, keep the body in the text colour
-  vec3 col = c.rgb;
-  col.r = mix(col.r, 1., max(r - c.a, 0.) * .9);
-  col.b = mix(col.b, 1., max(b - c.a, 0.) * .9);
-  float a = max(c.a, max(r, b) * .85);
+  // a soft trailing copy on either side of the smear, in the accent colour
+  float g = max(texture2D(uText, uv + ca).a, texture2D(uText, uv - ca).a);
+  float edge = max(g - c.a, 0.);
+  vec3 col = c.a > 0. ? c.rgb / c.a : uTint;
+  col = mix(col, uTint, edge);
+  float a = max(c.a, g * .55);
   gl_FragColor = vec4(col * a, a);
 }`;
 
@@ -135,8 +135,11 @@ export default function LiquidTitle({ lines, className = "" }: { lines: string[]
       delta: sim("uDelta"),
       text: gl.getUniformLocation(drawProg, "uText"),
       sim: gl.getUniformLocation(drawProg, "uSim"),
+      tint: gl.getUniformLocation(drawProg, "uTint"),
     };
 
+    // accent colour as 0..1 rgb, for the smear edges
+    let tint = new Float32Array([0.17, 0.33, 0.79]);
     let w = 0;
     let h = 0;
     // Draw the DOM title into an offscreen 2D canvas and upload it.
@@ -156,6 +159,9 @@ export default function LiquidTitle({ lines, className = "" }: { lines: string[]
       const cs = getComputedStyle(title);
       ctx.scale(dpr, dpr);
       ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#2b55c9";
+      const hex = ctx.fillStyle;
+      tint = new Float32Array([1, 3, 5].map((k) => parseInt(hex.slice(k, k + 2), 16) / 255));
       ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--fg").trim() || "#141416";
       ctx.textBaseline = "alphabetic";
       (ctx as CanvasRenderingContext2D & { letterSpacing?: string }).letterSpacing = cs.letterSpacing;
@@ -226,6 +232,7 @@ export default function LiquidTitle({ lines, className = "" }: { lines: string[]
       gl.activeTexture(gl.TEXTURE1);
       gl.bindTexture(gl.TEXTURE_2D, dst.tex);
       gl.uniform1i(u.sim, 1);
+      gl.uniform3fv(u.tint, tint);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
       // the trail has fully settled after ~3s of stillness: stop until next move
