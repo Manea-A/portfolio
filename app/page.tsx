@@ -183,17 +183,17 @@ export default function Home() {
         <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-5 pb-20 pt-4 md:px-8 md:pt-5 lg:grid-cols-[1.05fr_1fr] lg:pb-28">
           {/* the idea behind the background, drawn by hand: a scribble that
               straightens into an arrow */}
-          <p className="motto rise rise-1 mx-auto -mb-6 flex w-full max-w-xl items-center gap-3 text-base md:-mb-8 md:text-lg lg:col-span-2">
+          <p className="motto rise rise-1 mx-auto -mb-6 flex w-full max-w-3xl items-center gap-3 text-xl md:-mb-8 md:gap-4 md:text-3xl lg:col-span-2">
             <span className="font-serif italic text-muted">complexity</span>
             <span aria-hidden="true" className="flex flex-1 items-center">
-              <svg viewBox="0 0 92 36" className="motto-scribble h-7 w-16 shrink-0 overflow-visible md:h-8 md:w-20">
+              <svg viewBox="0 0 92 36" className="motto-scribble h-8 w-[4.5rem] shrink-0 overflow-visible md:h-11 md:w-28">
                 <path
                   pathLength="1"
                   d="M2 22C10 4 22 4 20 18C18 32 6 26 14 12C22 0 36 6 32 20C28 34 18 26 28 14C38 2 50 10 46 22C42 32 36 22 50 18C60 15 66 26 74 20C80 15 85 18 92 18"
                 />
               </svg>
               <span className="motto-line h-[2px] flex-1" />
-              <svg viewBox="0 0 10 12" className="motto-head h-3 w-2.5 shrink-0 overflow-visible">
+              <svg viewBox="0 0 10 12" className="motto-head h-3.5 w-3 shrink-0 overflow-visible md:h-4">
                 <path d="M1 1L9 6L1 11" />
               </svg>
             </span>

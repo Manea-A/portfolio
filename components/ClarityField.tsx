@@ -382,8 +382,8 @@ export default function ClarityField() {
         g.translate(cxm, cym);
         g.scale(rx / ry, 1);
         const q = g.createRadialGradient(0, 0, 0, 0, 0, ry);
-        q.addColorStop(0, "rgba(0,0,0,0.85)");
-        q.addColorStop(0.65, "rgba(0,0,0,0.75)");
+        q.addColorStop(0, "rgba(0,0,0,0.5)");
+        q.addColorStop(0.65, "rgba(0,0,0,0.42)");
         q.addColorStop(1, "rgba(0,0,0,0)");
         g.fillStyle = q;
         g.fillRect(-ry, -ry, ry * 2, ry * 2);
