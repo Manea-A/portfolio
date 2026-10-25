@@ -45,7 +45,7 @@ export default function HeroShowcase({ cards }: { cards: Card[] }) {
     <div
       onPointerMove={onMove}
       onPointerLeave={onLeave}
-      className="relative mx-auto aspect-[5/4] w-full max-w-[560px] [perspective:1400px]"
+      className="relative mx-auto aspect-[5/4] w-full max-w-[660px] [perspective:1400px]"
     >
       <motion.div style={{ rotateX: rx, rotateY: ry }} className="relative h-full w-full [transform-style:preserve-3d]">
         {cards.slice(0, 3).map((c, i) => {

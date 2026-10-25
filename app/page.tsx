@@ -1,4 +1,5 @@
 import Link from "next/link";
+import BookCall from "@/components/BookCall";
 import CopyEmail from "@/components/CopyEmail";
 import ClarityField from "@/components/ClarityField";
 import HeroShowcase from "@/components/HeroShowcase";
@@ -6,17 +7,19 @@ import LiquidTitle from "@/components/LiquidTitle";
 import RotatingWords from "@/components/RotatingWords";
 import { Logo, ScrollShot } from "@/components/ProjectVisuals";
 import { StackChips, StackIcons } from "@/components/TechIcons";
-import { bySlug, projects, type Project } from "@/lib/projects";
+import { projects, type Project } from "@/lib/projects";
 import { CV, EMAIL, GITHUB, LINKEDIN } from "@/lib/site";
 
 const featured = projects.filter((p) => p.featured);
 const sites = projects.filter((p) => p.kind === "client-site");
 
 /* hero stack, back to front */
-const showcase = ["covita", "gavelmarket", "isopluss"].map((slug) => {
-  const p = bySlug(slug)!;
-  return { slug, title: p.title, shot: p.shot!, domain: p.links[0]?.label };
-});
+/* hero stack, back to front: inside the systems, not their landing pages */
+const showcase = [
+  { slug: "basmah", title: "Basmah ISMS", shot: "/projects/shots/basmah.webp", domain: "Basmah ISMS · compliance console" },
+  { slug: "aip", title: "AIP Fath", shot: "/projects/shots/aip-fath.webp", domain: "AIP Fath · 105 AI agents" },
+  { slug: "isopluss", title: "ISOPluss", shot: "/projects/shots/isopluss-console.webp", domain: "ISOPluss · operations console" },
+];
 
 /* every live product, for the logo marquee */
 const liveLogos = featured.flatMap((p) => [
@@ -180,7 +183,7 @@ export default function Home() {
         <div aria-hidden="true" className="absolute inset-0 overflow-hidden">
           <div className="grain" />
         </div>
-        <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-5 pb-20 pt-4 md:px-8 md:pt-5 lg:grid-cols-[1.05fr_1fr] lg:pb-28">
+        <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-5 pb-20 pt-4 md:px-8 md:pt-5 lg:grid-cols-[1fr_1.15fr] lg:pb-28">
           {/* the idea behind the background, drawn by hand: a scribble that
               straightens into an arrow */}
           <p className="motto rise rise-1 mx-auto -mb-6 flex w-full max-w-3xl items-center gap-3 text-xl md:-mb-8 md:gap-4 md:text-3xl lg:col-span-2">
@@ -237,14 +240,13 @@ export default function Home() {
               >
                 View my work
               </Link>
-              <a
-                href={CV}
-                download
-                className="rounded-full border border-line-strong bg-bg/70 px-6 py-3 text-sm font-medium backdrop-blur transition-colors hover:bg-surface"
-              >
-                Download CV
-              </a>
+              <BookCall className="rounded-full border border-line-strong bg-bg/70 px-6 py-3 text-sm font-medium backdrop-blur transition-colors hover:bg-surface">
+                Book a call
+              </BookCall>
               <span className="ml-1 flex gap-5 text-sm">
+                <a href={CV} download className="link text-muted hover:text-fg">
+                  CV
+                </a>
                 <a href={LINKEDIN} target="_blank" rel="noopener noreferrer" className="link text-muted hover:text-fg">
                   LinkedIn
                 </a>
@@ -435,9 +437,12 @@ export default function Home() {
                 reach me.
               </p>
               <div className="mt-9 flex flex-wrap items-center gap-3">
+                <BookCall className="rounded-full bg-fg px-6 py-3 text-sm font-medium text-bg transition-transform hover:-translate-y-0.5">
+                  Book a call
+                </BookCall>
                 <a
                   href={`mailto:${EMAIL}`}
-                  className="rounded-full bg-fg px-6 py-3 text-sm font-medium text-bg transition-transform hover:-translate-y-0.5"
+                  className="rounded-full border border-line-strong px-5 py-3 text-sm font-medium transition-colors hover:bg-bg"
                 >
                   {EMAIL}
                 </a>

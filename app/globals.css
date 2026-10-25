@@ -420,3 +420,57 @@ main:has(#contact) + .site-footer .footer-inner {
     animation: none;
   }
 }
+
+/* ── Book a call dialog ───────────────────────────────────────── */
+.book-dialog {
+  margin: auto;
+  width: min(34rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  overflow: visible;
+}
+.book-dialog::backdrop {
+  background: color-mix(in srgb, var(--fg) 30%, transparent);
+  backdrop-filter: blur(6px);
+}
+.book-dialog[open] .book-panel {
+  animation: book-in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+}
+.book-dialog[open]::backdrop {
+  animation: book-fade 0.3s ease both;
+}
+.book-step {
+  animation: book-step 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.book-days {
+  scrollbar-width: none;
+}
+@keyframes book-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+}
+@keyframes book-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes book-step {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .book-dialog[open] .book-panel,
+  .book-dialog[open]::backdrop,
+  .book-step {
+    animation: none;
+  }
+}

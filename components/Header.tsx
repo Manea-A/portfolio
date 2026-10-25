@@ -1,6 +1,6 @@
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
-import { CV } from "@/lib/site";
+import BookCall from "@/components/BookCall";
 
 const nav = [
   { href: "/#work", label: "Work", mobile: true },
@@ -36,7 +36,7 @@ export default function Header() {
         <nav aria-label="Primary">
           <ul className="flex items-center gap-3 text-sm sm:gap-5 md:gap-7">
             {nav.map((item) => (
-              <li key={item.href} className={item.mobile ? (item.label === "Work" ? "max-[379px]:hidden" : "") : "hidden sm:block"}>
+              <li key={item.href} className={item.mobile ? (item.label === "Work" ? "max-[419px]:hidden" : "") : "hidden sm:block"}>
                 <Link href={item.href} className="text-muted transition-colors hover:text-fg">
                   {item.label}
                 </Link>
@@ -46,13 +46,10 @@ export default function Header() {
               <ThemeToggle />
             </li>
             <li>
-              <a
-                href={CV}
-                download
-                className="rounded-full bg-fg px-4 py-1.5 font-medium text-bg transition-opacity hover:opacity-85"
-              >
-                CV
-              </a>
+              <BookCall className="whitespace-nowrap rounded-full bg-fg px-4 py-1.5 font-medium text-bg transition-opacity hover:opacity-85">
+                <span className="sm:hidden">Book</span>
+                <span className="hidden sm:inline">Book a call</span>
+              </BookCall>
             </li>
           </ul>
         </nav>

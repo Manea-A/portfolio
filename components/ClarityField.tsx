@@ -393,7 +393,15 @@ export default function ClarityField() {
     };
 
     const p = [0, 0];
+    // On load the threads draw themselves in from the left like ink, then
+    // the rails, footer rows and pulses fade in after them.
+    const introStart = performance.now();
+    const INTRO = 2400;
+    let fade = 1; // multiplier for everything after the hero threads
+
     const draw = (time: number) => {
+      const intro = reduced ? 1 : smooth(0, 1, (time - introStart) / INTRO);
+      fade = smooth(0.45, 1, intro);
       ctx.clearRect(0, 0, vw, vh);
       ctx.lineJoin = "round";
       ctx.lineCap = "round";
@@ -406,7 +414,22 @@ export default function ClarityField() {
         ctx.save();
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.globalAlpha = 1;
-        ctx.drawImage(heroImg!, 0, Math.round((heroImgTop - scrollY) * dpr));
+        const iy = Math.round((heroImgTop - scrollY) * dpr);
+        if (intro >= 1) ctx.drawImage(heroImg!, 0, iy);
+        else {
+          // reveal up to a moving edge with a soft 160px feather
+          const W = heroImg!.width;
+          const edge = intro * (W + 160 * dpr);
+          const solid = Math.max(0, Math.min(W, edge - 160 * dpr));
+          if (solid > 0) ctx.drawImage(heroImg!, 0, 0, solid, heroImg!.height, 0, iy, solid, heroImg!.height);
+          for (let k = 0; k < 8; k++) {
+            const x0 = solid + (k * 20 * dpr);
+            if (x0 >= W) break;
+            const w = Math.min(20 * dpr, W - x0);
+            ctx.globalAlpha = 1 - (k + 1) / 9;
+            ctx.drawImage(heroImg!, x0, 0, w, heroImg!.height, x0, iy, w, heroImg!.height);
+          }
+        }
         ctx.restore();
       }
 
@@ -424,7 +447,7 @@ export default function ClarityField() {
         }
         grad.addColorStop(1, col.accentSoft);
         ctx.strokeStyle = grad;
-        ctx.globalAlpha = 1;
+        ctx.globalAlpha = fade;
         ctx.lineWidth = 1;
         ctx.beginPath();
         for (let lane = 0; lane < lanes; lane++) {
@@ -453,7 +476,7 @@ export default function ClarityField() {
         g.addColorStop(0.55, col.accentSoft);
         g.addColorStop(1, col.glowSoft);
         ctx.strokeStyle = g;
-        ctx.globalAlpha = 1;
+        ctx.globalAlpha = fade;
         ctx.lineWidth = 1;
         ctx.beginPath();
         for (const sp of spreads) {
@@ -530,7 +553,7 @@ export default function ClarityField() {
     const comet = (point: (k: number, out: number[]) => void, count: number) => {
       ctx.strokeStyle = col.glow;
       // halo
-      ctx.globalAlpha = dark ? 0.16 : 0.12;
+      ctx.globalAlpha = (dark ? 0.16 : 0.12) * fade;
       ctx.lineWidth = 5;
       ctx.beginPath();
       point(Math.floor(count / 2), q);
@@ -545,7 +568,7 @@ export default function ClarityField() {
       point(0, r);
       for (let k = 1; k <= count; k++) {
         point(k, q);
-        ctx.globalAlpha = (k / count) ** 1.6 * 0.95;
+        ctx.globalAlpha = (k / count) ** 1.6 * 0.95 * fade;
         ctx.beginPath();
         ctx.moveTo(r[0], r[1]);
         ctx.lineTo(q[0], q[1]);
@@ -554,7 +577,7 @@ export default function ClarityField() {
         r[1] = q[1];
       }
       // head
-      ctx.globalAlpha = 0.95;
+      ctx.globalAlpha = 0.95 * fade;
       ctx.fillStyle = col.glow;
       ctx.beginPath();
       ctx.arc(q[0], q[1], 1.7, 0, Math.PI * 2);
