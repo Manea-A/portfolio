@@ -22,27 +22,30 @@ const KINDS = [
 ] as const;
 
 const RIYADH_OFFSET = 3; // UTC+3, no daylight saving
-const DAYS_AHEAD = 14;
+const DAYS_AHEAD = 60;
 const OPEN = 10; // 10:00 Riyadh
 const CLOSE = 17; // last call ends by 17:00
 
 type Kind = (typeof KINDS)[number];
 
-/** working days (Sun–Thu) from tomorrow, as Riyadh calendar dates */
-function workingDays() {
-  const out: { y: number; m: number; d: number; dow: number }[] = [];
+type Day = { y: number; m: number; d: number };
+
+/** today's date in Riyadh */
+function riyadhToday(): Day {
   const now = new Date(Date.now() + RIYADH_OFFSET * 3600e3);
-  for (let i = 1; out.length < 10 && i <= DAYS_AHEAD; i++) {
-    const t = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + i));
-    const dow = t.getUTCDay();
-    if (dow === 5 || dow === 6) continue; // Friday, Saturday
-    out.push({ y: t.getUTCFullYear(), m: t.getUTCMonth(), d: t.getUTCDate(), dow });
-  }
-  return out;
+  return { y: now.getUTCFullYear(), m: now.getUTCMonth(), d: now.getUTCDate() };
 }
+const dayNum = (d: Day) => Date.UTC(d.y, d.m, d.d) / 864e5;
+/** bookable: from tomorrow up to DAYS_AHEAD, Sunday to Thursday */
+function bookable(d: Day, today: Day) {
+  const diff = dayNum(d) - dayNum(today);
+  const dow = new Date(Date.UTC(d.y, d.m, d.d)).getUTCDay();
+  return diff >= 1 && diff <= DAYS_AHEAD && dow !== 5 && dow !== 6;
+}
+const sameDay = (a: Day | null, b: Day) => !!a && a.y === b.y && a.m === b.m && a.d === b.d;
 
 /** the UTC instant of hh:mm Riyadh time on a Riyadh date */
-const instant = (day: { y: number; m: number; d: number }, minutes: number) =>
+const instant = (day: Day, minutes: number) =>
   new Date(Date.UTC(day.y, day.m, day.d, 0, minutes) - RIYADH_OFFSET * 3600e3);
 
 const gcalStamp = (d: Date) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
@@ -51,14 +54,15 @@ export default function BookCall({ className, children }: { className: string; c
   const dialog = useRef<HTMLDialogElement>(null);
   const [step, setStep] = useState(0);
   const [kind, setKind] = useState<Kind>(KINDS[1]);
-  const [dayIdx, setDayIdx] = useState(0);
+  const today = useMemo(riyadhToday, []);
+  const [day, setDay] = useState<Day | null>(null);
+  const [view, setView] = useState(() => ({ y: today.y, m: today.m }));
   const [slot, setSlot] = useState<number | null>(null); // minutes after Riyadh midnight
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [note, setNote] = useState("");
   const [sent, setSent] = useState(false);
 
-  const days = useMemo(workingDays, []);
   const localZone = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, []);
   const showLocal = !/Riyadh/.test(localZone) && new Date().getTimezoneOffset() !== -RIYADH_OFFSET * 60;
 
@@ -69,8 +73,7 @@ export default function BookCall({ className, children }: { className: string; c
     return out;
   }, [kind]);
 
-  const day = days[dayIdx];
-  const start = slot === null ? null : instant(day, slot);
+  const start = slot === null || !day ? null : instant(day, slot);
   const end = start && new Date(start.getTime() + kind.minutes * 60e3);
 
   const fmt = (d: Date, zone: string, opts: Intl.DateTimeFormatOptions) =>
@@ -128,7 +131,7 @@ export default function BookCall({ className, children }: { className: string; c
     setSent(true);
   };
 
-  const canNext = step === 0 || (step === 1 && slot !== null) || (step === 2 && name.trim() && /\S+@\S+\.\S+/.test(email));
+  const canNext = step === 0 || (step === 1 && !!day && slot !== null) || (step === 2 && name.trim() && /\S+@\S+\.\S+/.test(email));
   const steps = ["Type", "Time", "Details"];
 
   return (
@@ -138,12 +141,12 @@ export default function BookCall({ className, children }: { className: string; c
       </button>
 
       <dialog ref={dialog} aria-labelledby="book-title" className="book-dialog">
-        <div className="book-panel relative w-full overflow-hidden rounded-3xl border border-line bg-bg text-fg shadow-2xl">
+        <div className="book-panel relative w-full overflow-hidden rounded-3xl border border-line text-fg shadow-2xl">
           <div aria-hidden="true" className="contact-glow pointer-events-none absolute inset-0" />
           <div className="relative p-5 md:p-7">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="meta text-muted">{"{ Book a call }"}</p>
+                <p className="meta text-muted">Book a call</p>
                 <h2 id="book-title" className="mt-1 text-2xl font-semibold tracking-tight">
                   {sent ? "Request ready" : "Let's talk"}
                 </h2>
@@ -232,40 +235,85 @@ export default function BookCall({ className, children }: { className: string; c
                   ))}
                 </div>
               ) : step === 1 ? (
-                <div>
-                  <div className="book-days -mx-1 flex gap-2 overflow-x-auto px-1 pb-2">
-                    {days.map((d, i) => {
-                      const date = instant(d, 12 * 60);
+                <div className="md:grid md:grid-cols-[1fr_15rem] md:gap-7">
+                  <div>
+                  <div className="flex items-center justify-between">
+                    <p className="font-medium">
+                      {fmt(new Date(Date.UTC(view.y, view.m, 15)), "UTC", { month: "long", year: "numeric" })}
+                    </p>
+                    <div className="flex gap-1">
+                      {[-1, 1].map((dir) => {
+                        const next = new Date(Date.UTC(view.y, view.m + dir, 1));
+                        const nv = { y: next.getUTCFullYear(), m: next.getUTCMonth() };
+                        const months = (nv.y - today.y) * 12 + nv.m - today.m;
+                        const off = months < 0 || months > Math.ceil(DAYS_AHEAD / 30);
+                        return (
+                          <button
+                            key={dir}
+                            type="button"
+                            disabled={off}
+                            onClick={() => setView(nv)}
+                            aria-label={dir < 0 ? "Previous month" : "Next month"}
+                            className="grid h-8 w-8 place-items-center rounded-full border border-line text-muted transition-colors hover:text-fg disabled:opacity-30"
+                          >
+                            <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+                              <path d={dir < 0 ? "M10 3L5 8l5 5" : "M6 3l5 5-5 5"} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div className="mt-3 grid grid-cols-7 gap-1 text-center">
+                    {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((w) => (
+                      <span key={w} className="meta py-1 text-[0.6875rem] text-muted">
+                        {w}
+                      </span>
+                    ))}
+                    {Array.from({ length: new Date(Date.UTC(view.y, view.m, 1)).getUTCDay() }, (_, i) => (
+                      <span key={`pad${i}`} />
+                    ))}
+                    {Array.from({ length: new Date(Date.UTC(view.y, view.m + 1, 0)).getUTCDate() }, (_, i) => {
+                      const d = { y: view.y, m: view.m, d: i + 1 };
+                      const ok = bookable(d, today);
+                      const sel = sameDay(day, d);
+                      const isToday = sameDay(today, d);
                       return (
                         <button
-                          key={`${d.m}-${d.d}`}
+                          key={i}
                           type="button"
+                          disabled={!ok}
                           onClick={() => {
-                            setDayIdx(i);
+                            setDay(d);
                             setSlot(null);
                           }}
-                          aria-pressed={dayIdx === i}
-                          className={`flex w-16 shrink-0 flex-col items-center rounded-2xl border py-2.5 transition-colors ${
-                            dayIdx === i ? "border-fg bg-fg text-bg" : "border-line hover:border-line-strong"
+                          aria-pressed={sel}
+                          aria-label={fmt(new Date(Date.UTC(d.y, d.m, d.d, 12)), "UTC", { weekday: "long", day: "numeric", month: "long" })}
+                          className={`relative mx-auto grid aspect-square w-full max-w-10 place-items-center rounded-full text-sm transition-colors ${
+                            sel
+                              ? "bg-fg font-semibold text-bg"
+                              : ok
+                                ? "font-medium hover:bg-surface"
+                                : "text-muted opacity-35"
                           }`}
                         >
-                          <span className="meta text-[0.6875rem] opacity-70">
-                            {fmt(date, "Asia/Riyadh", { weekday: "short" })}
-                          </span>
-                          <span className="text-lg font-semibold">{d.d}</span>
-                          <span className="meta text-[0.6875rem] opacity-70">
-                            {fmt(date, "Asia/Riyadh", { month: "short" })}
-                          </span>
+                          {i + 1}
+                          {isToday && !sel && <span className="absolute bottom-1 h-1 w-1 rounded-full bg-accent" />}
                         </button>
                       );
                     })}
                   </div>
-                  <p className="meta mt-4 text-muted">
-                    Times in Riyadh (GMT+3){showLocal && ` · yours in ${localZone.split("/").pop()?.replace(/_/g, " ")}`}
+                  <p className="meta mt-2 text-muted">Sunday to Thursday · Riyadh working hours</p>
+                  </div>
+                  <div className="mt-5 md:mt-0 md:border-l md:border-line md:pl-7">
+                  {day ? (
+                    <>
+                  <p className="meta text-muted">
+                    {fmt(instant(day, 12 * 60), "Asia/Riyadh", { weekday: "long", day: "numeric", month: "long" })} · times in Riyadh (GMT+3){showLocal && ` · yours in ${localZone.split("/").pop()?.replace(/_/g, " ")}`}
                   </p>
-                  <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
+                  <div className="book-times mt-3 grid grid-cols-3 gap-2 md:max-h-[19rem] md:grid-cols-2 md:overflow-y-auto md:pr-1">
                     {slots.map((t) => {
-                      const at = instant(day, t);
+                      const at = instant(day!, t);
                       return (
                         <button
                           key={t}
@@ -281,6 +329,11 @@ export default function BookCall({ className, children }: { className: string; c
                         </button>
                       );
                     })}
+                  </div>
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted md:pt-1">Pick a day to see the available times.</p>
+                  )}
                   </div>
                 </div>
               ) : (
@@ -300,7 +353,7 @@ export default function BookCall({ className, children }: { className: string; c
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       autoComplete="name"
-                      className="rounded-xl border border-line bg-bg px-3 py-2.5 outline-none transition-colors focus:border-accent"
+                      className="rounded-xl border border-line px-3 py-2.5 outline-none transition-colors focus:border-accent"
                     />
                   </label>
                   <label className="grid gap-1.5 text-sm">
@@ -311,7 +364,7 @@ export default function BookCall({ className, children }: { className: string; c
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       autoComplete="email"
-                      className="rounded-xl border border-line bg-bg px-3 py-2.5 outline-none transition-colors focus:border-accent"
+                      className="rounded-xl border border-line px-3 py-2.5 outline-none transition-colors focus:border-accent"
                     />
                   </label>
                   <label className="grid gap-1.5 text-sm">
@@ -320,7 +373,7 @@ export default function BookCall({ className, children }: { className: string; c
                       rows={3}
                       value={note}
                       onChange={(e) => setNote(e.target.value)}
-                      className="resize-none rounded-xl border border-line bg-bg px-3 py-2.5 outline-none transition-colors focus:border-accent"
+                      className="resize-none rounded-xl border border-line px-3 py-2.5 outline-none transition-colors focus:border-accent"
                     />
                   </label>
                 </form>

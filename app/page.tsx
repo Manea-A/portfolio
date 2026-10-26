@@ -238,7 +238,7 @@ export default function Home() {
               </span>
             </p>
             <p className="rise rise-3 meta mt-3 text-muted">
-              {"{"} Senior Software Engineer · Technical Lead · Software Architect {"}"}
+              Senior Software Engineer · Technical Lead · Software Architect
             </p>
             <p className="rise rise-4 mt-6 max-w-xl text-lg leading-relaxed">
               I turn complex systems into clear, reliable products, designed,
@@ -308,7 +308,7 @@ export default function Home() {
       {/* ── Work ──────────────────────────────────────────────── */}
       <Section
         id="work"
-        index="{ 01 } Work"
+        index="01 · Work"
         title="Selected work"
         intro="Products I architected and built. Hover a preview to scroll through the real app."
       >
@@ -361,7 +361,7 @@ export default function Home() {
       </Section>
 
       {/* ── Experience ────────────────────────────────────────── */}
-      <Section id="experience" index="{ 02 } Experience" title="Where I've worked">
+      <Section id="experience" index="02 · Experience" title="Where I've worked">
         <ol className="space-y-4">
           {experience.map((e) => (
             <li key={`${e.role}-${e.org}`} className="reveal grid gap-2 md:grid-cols-[11rem_1fr] md:gap-0">
@@ -394,7 +394,7 @@ export default function Home() {
       </Section>
 
       {/* ── Skills ────────────────────────────────────────────── */}
-      <Section id="skills" index="{ 03 } Skills" title="Tools I use in production">
+      <Section id="skills" index="03 · Skills" title="Tools I use in production">
         <div className="grid gap-x-12 gap-y-10 md:grid-cols-2">
           {skills.map((s) => (
             <div key={s.area} className="reveal">
@@ -406,7 +406,7 @@ export default function Home() {
       </Section>
 
       {/* ── About ─────────────────────────────────────────────── */}
-      <Section id="about" index="{ 04 } About" title="About me">
+      <Section id="about" index="04 · About" title="About me">
         <div className="grid gap-14 lg:grid-cols-[1.2fr_1fr]">
           <div className="reveal space-y-5 text-lg leading-relaxed">
             <p>
@@ -440,7 +440,7 @@ export default function Home() {
         <div className="relative mx-auto max-w-6xl px-5 pb-16 pt-20 md:px-8 md:pb-20 md:pt-28">
           <div className="reveal">
             <div>
-              <p className="meta text-muted">{"{ 05 } Contact"}</p>
+              <p className="meta text-muted">05 · Contact</p>
               <h2 id="contact-title" className="mt-3 max-w-2xl text-4xl font-semibold tracking-[-0.03em] md:text-6xl">
                 Let&apos;s build something that lasts.
               </h2>

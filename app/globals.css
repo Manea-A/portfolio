@@ -422,9 +422,32 @@ main:has(#contact) + .site-footer .footer-inner {
 }
 
 /* ── Book a call dialog ───────────────────────────────────────── */
+.book-panel {
+  --panel: var(--bg);
+  background: var(--panel);
+}
+/* dark: a softer charcoal than the page, so the dialog isn't a black hole */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .book-panel {
+    --panel: #1d1e23;
+    --line: #2f3037;
+    --line-strong: #43444c;
+    --surface: #26272d;
+  }
+}
+:root[data-theme="dark"] .book-panel {
+  --panel: #1d1e23;
+  --line: #2f3037;
+  --line-strong: #43444c;
+  --surface: #26272d;
+}
+.book-panel input,
+.book-panel textarea {
+  background: color-mix(in srgb, var(--panel) 70%, var(--bg));
+}
 .book-dialog {
   margin: auto;
-  width: min(34rem, calc(100vw - 2rem));
+  width: min(48rem, calc(100vw - 2rem));
   max-height: calc(100dvh - 2rem);
   padding: 0;
   border: 0;
@@ -433,7 +456,7 @@ main:has(#contact) + .site-footer .footer-inner {
   overflow: visible;
 }
 .book-dialog::backdrop {
-  background: color-mix(in srgb, var(--fg) 30%, transparent);
+  background: color-mix(in srgb, #000 45%, transparent);
   backdrop-filter: blur(6px);
 }
 .book-dialog[open] .book-panel {
