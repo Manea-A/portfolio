@@ -71,7 +71,7 @@ export const projects: Project[] = [
     role: "Co-founder & Lead Software Architect",
     kind: "product",
     logo: "/projects/logos/isopluss.png",
-    shot: "/projects/shots/isopluss.webp",
+    shot: "/projects/shots/isopluss-below.webp",
     links: [{ label: "isopluss.org", href: "https://isopluss.org/" }],
     summary:
       "An enterprise B2B platform that runs ISO 22000, FSSC 22000, and HACCP in one place: traceability, monitoring, document control, and audits for food operations, in Arabic and English.",

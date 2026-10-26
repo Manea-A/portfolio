@@ -18,7 +18,7 @@ const sites = projects.filter((p) => p.kind === "client-site");
 const showcase = [
   { slug: "myces", title: "MYCES FMS", shot: "/projects/shots/fms-dashboard.webp", domain: "MYCES FMS · maintenance management" },
   { slug: "myces", title: "EMARS", shot: "/projects/shots/emars-sld.webp", domain: "EMARS · single-line diagram" },
-  { slug: "isopluss", title: "ISOPluss", shot: "/projects/shots/isopluss-console.webp", domain: "ISOPluss · operations console" },
+  { slug: "isopluss", title: "ISOPluss", shot: "/projects/shots/isopluss-hero.webp", domain: "isopluss.org" },
 ];
 
 /* every live product, for the logo marquee */
