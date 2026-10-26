@@ -52,7 +52,7 @@ export default function HeroShowcase({ cards }: { cards: Card[] }) {
           const l = LAYOUT[i];
           return (
             <motion.div
-              key={c.slug}
+              key={c.title}
               className="absolute left-[8%] top-[8%] w-[84%]"
               style={{ x: l.x, y: l.y, z: l.z, rotate: l.rotate, scale: l.scale, zIndex: i }}
               whileHover={reduced ? undefined : { rotate: 0, scale: l.scale + 0.03, z: HOVER_Z, zIndex: 5 }}

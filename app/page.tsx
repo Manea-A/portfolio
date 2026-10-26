@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import BookCall from "@/components/BookCall";
 import CopyEmail from "@/components/CopyEmail";
@@ -13,11 +14,10 @@ import { CV, EMAIL, GITHUB, LINKEDIN } from "@/lib/site";
 const featured = projects.filter((p) => p.featured);
 const sites = projects.filter((p) => p.kind === "client-site");
 
-/* hero stack, back to front */
 /* hero stack, back to front: inside the systems, not their landing pages */
 const showcase = [
-  { slug: "basmah", title: "Basmah ISMS", shot: "/projects/shots/basmah.webp", domain: "Basmah ISMS · compliance console" },
-  { slug: "aip", title: "AIP Fath", shot: "/projects/shots/aip-fath.webp", domain: "AIP Fath · 105 AI agents" },
+  { slug: "myces", title: "MYCES FMS", shot: "/projects/shots/fms-dashboard.webp", domain: "MYCES FMS · maintenance management" },
+  { slug: "myces", title: "EMARS", shot: "/projects/shots/emars-sld.webp", domain: "EMARS · single-line diagram" },
   { slug: "isopluss", title: "ISOPluss", shot: "/projects/shots/isopluss-console.webp", domain: "ISOPluss · operations console" },
 ];
 
@@ -137,6 +137,19 @@ function WorkCard({ p, priority }: { p: Project; priority: boolean }) {
           </div>
         </div>
         <p className="mt-4 leading-relaxed text-muted">{p.line}</p>
+        {p.family && p.family.length > 1 && (
+          <ul aria-label={p.familyTitle ?? "Includes"} className="mt-4 flex flex-wrap gap-2">
+            {p.family.map((f) => (
+              <li
+                key={f.title}
+                className="flex items-center gap-1.5 rounded-full border border-line bg-bg/60 py-1 pl-1 pr-3 text-sm"
+              >
+                <Image src={f.logo} alt="" width={20} height={20} className="h-5 w-5 rounded-md object-contain" />
+                {f.title}
+              </li>
+            ))}
+          </ul>
+        )}
         {p.metrics.length > 0 && (
           <dl className="mt-5 flex flex-wrap gap-x-8 gap-y-2">
             {p.metrics.slice(0, 2).map((m) => (
